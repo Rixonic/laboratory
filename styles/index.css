@@ -1,0 +1,39 @@
+/*
+  th {
+    background-color: white;
+    color: black;
+    padding: 5px;
+    border: 1px solid #ddd;
+
+  }
+  td {
+    height: 50px;
+  }
+
+  tr:nth-child(even) td {
+    background-color: #f5f5f5;
+  }
+
+  tr:hover td {
+    background-color: #ddd;
+  }
+
+  .highlight-overdue {
+    background-color: #ffcccc; 
+  }
+*/
+.green {
+  background-color: #5bab60;
+  border-radius: 5px;
+  padding: 2px 4px 2px 4px;
+}
+.yellow {
+  background-color: #f5d496;
+  border-radius: 5px;
+  padding: 2px 4px 2px 4px;
+}
+.red {
+  background-color: #dd8080;
+  border-radius: 5px;
+  padding: 2px 4px 2px 4px;
+}

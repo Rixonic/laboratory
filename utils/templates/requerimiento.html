@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>requerimiento</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: Arial;
+            font-size: 10pt;
+            box-sizing: border-box;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        div {
+            display: flex;
+            align-items: center;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        h1 {
+            font-weight: normal;
+        }
+
+        h2 {
+            font-weight: bold;
+        }
+        .left {
+            text-align: left;
+            padding-left: 5px;
+        }
+        h2,
+        h1 {
+            text-align: center;
+            vertical-align: middle;
+        }
+        img {
+            height: 106px; position: absolute; top: 0%; left: 50%; transform: translateX(-50%);
+        }
+    </style>
+</head>
+
+<body>
+    <table style="width: 1494px;">
+        <thead style="display: hide;">
+            <tr>
+                <th style="width: 46px;"></th>
+                <th style="width: 63px;"></th>
+                <th style="width: 149px;"></th>
+                <th style="width: 89px;"></th>
+                <th style="width: 21px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 31px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 24px;"></th>
+                <th style="width: 48px;"></th>
+                <th style="width: 42px;"></th>
+                <th style="width: 42px;"></th>
+                <th style="width: 42px;"></th>
+                <th style="width: 42px;"></th>
+                <th style="width: 152px;"></th>
+                <th style="width: 152px;"></th>
+                <th style="width: 185px;"></th>
+                <th style="width: 174px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="height: 39px;background-color: #BFBFBF;">
+                <td colspan="2" style="border-right: 0px;">
+                    <h1 style="font-size: 8pt">FECHA: </h1>
+                </td>
+                <td colspan="2" style="border-left: 0px;">
+                    <h2 style="color: red;font-size: 9pt">{{createdAt}}</h2>
+                </td>
+                <td colspan="17">
+                    <h2>FORMULARIO UNICO DE REQUERIMIENTO P/COMPRAS</h2>
+                </td>
+                <td colspan="1" style="border-right: 0px;">
+                    <h1 class="left" style="font-size: 7pt;">NUMERO</h1>
+                </td>
+                <td colspan="2" style="border-left: 0px;">
+                    <h2 style="font-size: 18pt;color: red">{{requerimientId}}</h2>
+                </td>
+            </tr>
+
+            <tr style="height: 27px;">
+                <td colspan="24"></td>
+            </tr>
+
+            <tr style="height: 27px;background-color: #F2F2F2;">
+                <td colspan="3" style="border-right: 0px;">
+                    <h1 class="left">Urgencia: Alto/Medio/Bajo</h1>
+                </td>
+                <td colspan="1" style="border-left: 0px;">
+                    <h2 class="left" style="font-size: 18pt;color: red;">{{severity}}</h2> <!-- Variable -->
+                </td>
+                <td colspan="11" style="border-right: 0px;">
+                    <h1  class="left">FECHA DE ENTREGA REQUERIDA: </h1>
+                </td>
+                <td colspan="6" style="border-left: 0px;">
+                    <h1>{{expectedMonth}}</h1> <!-- Variable -->
+                </td>
+                <td colspan="1" style="border-right: 0px;">
+                    <h2  class="left">ORIGINAL</h2>
+                </td>
+                <td colspan="2" style="border-left: 0px;">
+                    <h2 style="color: red;">*</h2>
+                </td>
+            </tr>
+
+            <tr style="height: 27px;background-color: #F2F2F2;">
+                <td colspan="2">
+                    <h1 class="left">SOLICITANTE</h1>
+                </td>
+                <td colspan="19">
+                    <h1 class="left" style="color: red;">INGENIERIA</h1>
+                </td>
+                <td colspan="1">
+                    <h2 class="left">REITERACION</h2>
+                </td>
+                <td colspan="2">
+                </td>
+            </tr>
+
+            <tr style="height: 27px;background-color: #F2F2F2;">
+                <td colspan="2">
+                    <h1 class="left">DESTINO</h1>
+                </td>
+                <td colspan="19">
+                    <h1 class="left" style="color: red;">{{service}}</h1> <!-- Variable -->
+                </td>
+                <td colspan="1">
+                    <h2 class="left">PEDIDO #</h2>
+                </td>
+                <td colspan="2">
+                </td>
+            </tr>
+            <tr style="height: 38px;background-color: #F2F2F2;">
+                <td colspan="21">
+                </td>
+                <td colspan="3">
+                    <h2 class="left">Solicitud de Ppto:</h2>
+                </td>
+            </tr>
+            <tr style="height: 41px;background-color: #F2F2F2;">
+                <td colspan="2" style="border-right: 0px;">
+                    <h2 class="left">ENTREGAR A: </h2>
+                </td>
+                <td colspan="19" style="border-left: 0px;">
+                    <h2 class="left">{{destination}}</h2> <!-- Variable -->
+                </td>
+                <td colspan="1" style="border-right: 0px;">
+                    <h2 class="left">CONSULTAR A:</h2>
+                </td>
+                <td colspan="2" style="border-left: 0px;">
+                    <h1>requerimientos.ingenieria@sanjuandedios.org.ar</h1> <!-- Variable -->
+                </td>
+            </tr>
+
+            <tr style="height: 22px;background-color: #BFBFBF;">
+                <td colspan="24">
+                    <h2>JUSTIFICACION DE COMPRA</h2>
+                </td>
+            </tr>
+            <tr style="height: 21px">
+                <td colspan="24"></td>
+            </tr>
+            <tr style="height: 18px;background-color: #BFBFBF;">
+                <td colspan="24">
+                    <h2>PRODUCTO REQUERIDO</h2>
+                </td>
+            </tr>
+            <tr style=" height: 36px;">
+                <td colspan="1" ><h2>Item.<h2></td>
+                <td colspan="1" ><h2>Cant.</h2></td>
+                <td colspan="1" ><h2>Unidad</h2></td>
+                <td colspan="18"><h2>Descripción</h2></td>
+                <td colspan="1" ><h2>Marca</h2></td>
+                <td colspan="1" ><h2>Modelo</h2></td>
+                <td colspan="1" ><h2>Motivo del pedido</h2></td>
+            </tr>
+            <tr style="height: 25px;"> <!-- Variable -->
+                <td colspan="1" ><h1> {{item}} </h1></td>
+                <td colspan="1" ><h1> {{quantity}} </h1></td>
+                <td colspan="1" ><h1> {{type}} </h1></td>
+                <td colspan="18"><h1> {{description}} </h1></td>
+                <td colspan="1" ><h1> {{brand}} </h1></td>
+                <td colspan="1" ><h1> {{model}} </h1></td>
+                <td colspan="1" ><h1> {{reason}} </h1></td>
+            </tr>
+            <tr style="height: 38px;">
+                <td colspan="24"></td>
+            </tr>
+            <tr style="height: 40px;">
+                <td colspan="24"><h1> * MOTIVO DEL PEDIDO: 1-CUBIERTO POR
+                    GARANTIA 2-FALLA INTRINSECA 3-DESGASTE NATURAL 4-ROTURA POR MAL USO DEL OPERADOR 5-ROTURA POR
+                    ACCIDENTE 6-FALLA DE SOFTWARE 7-POR DEFECTO DE INSTALACIONES 8-EXTRAVIO DE PARTES</h1></td>
+            </tr>
+            <tr style="height: 31px ;background-color: #BFBFBF">
+                <td colspan="24" style="height: 31px;">
+                    <h2 class="left"> {{comment}} </h2>
+                </td>
+            </tr>
+            <tr style="height: 41px; background-color: #F2F2F2;">
+                <th colspan="7">
+                    <h1>SOLICITO: FIRMA Y ACLARACION</h1>
+                </th>
+                <th colspan="13">
+                    <h1>AUTORIZÓ: FIRMA y ACLARACION</h1>
+                </th>
+                <th colspan="4">
+                    <h1>RETIRA: FIRMA y ACLARACION</h1>
+                </th>
+            </tr>
+            <tr style="height: 106px;vertical-align: bottom; background-color: #F2F2F2;">
+                <th colspan="7" style="position: relative;">
+                    <img src=".\firma.png">
+                    <h1>{{createdBy}}</h1>
+                </th> <!-- Variable -->
+                <th colspan="13" style="position: relative;">
+                    <img src=".\firmaJP.png">
+                    <h1>Ing. Juan Pablo Sanchez</h1>
+                </th>
+                <th colspan="4"></th>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>
