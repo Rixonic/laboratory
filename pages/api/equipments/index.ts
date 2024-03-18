@@ -31,9 +31,7 @@ const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => 
     }
 
     await db.connect();
-    const equipments = await Equipment.find(condition)
-                                .select('title images price inStock slug -_id')
-                                .lean();
+    const equipments = await Equipment.findAll(condition);
 
     await db.disconnect();
 

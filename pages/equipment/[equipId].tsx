@@ -138,7 +138,7 @@ const EquipmentPage:NextPage<Props> = ({ equipment, tickets }) => {
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
   
-  const equipmentEquips = await dbEquipments.getAllEquipmentEquipId();
+  const equipmentEquips = await dbEquipments.getAllEquipments();
   //equipmentEquips.push({equipId:'1A'})
   //console.log(equipmentEquips)
 
@@ -152,7 +152,7 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
   }
 }
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetServerSideProps = async ({ params }) => {
   
   const { equipId  = '' } = params as { equipId : string }; 
   const equipment = await dbEquipments.getEquipmentByEquipId( equipId );

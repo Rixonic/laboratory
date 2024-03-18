@@ -7,11 +7,44 @@ cloudinary.config( process.env.CLOUDINARY_URL || '' );
 import { db } from '../../../database';
 import { IEquipment } from '../../../interfaces/equipments';
 import { Equipment } from '../../../models';
+import { Sequelize,QueryTypes } from 'sequelize';
 
 type Data = 
 | { message: string }
 | IEquipment[]
 | IEquipment;
+
+interface EquipmentWithChildren extends IEquipment {
+    associatedEquip?: IEquipment[];
+}
+
+const query = `
+WITH RECURSIVE EquipmentHierarchy AS (
+    -- Ancla: Selecciona los equipos que no tienen padre
+    SELECT 
+      "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "duePerfomance", "electricalSecurity", "dueElectricalSecurity", "parentId", "createdAt", "updatedAt"
+    FROM 
+      "Equipments" 
+    WHERE 
+      "parentId" IS NULL
+  
+    UNION ALL
+  
+    -- Paso recursivo: Selecciona los equipos que tienen como padre a los equipos encontrados en el paso anterior
+    SELECT 
+      e."_id", e."equip", e."equipId", e."model", e."brand", e."sector", e."location", e."headquarter", e."images", e."ecri", e."serialNumber", e."criticalType", e."perfomance", e."duePerfomance", e."electricalSecurity", e."dueElectricalSecurity", e."parentId", e."createdAt", e."updatedAt"
+    FROM 
+      "Equipments" AS e
+    INNER JOIN 
+      EquipmentHierarchy AS eh ON e."parentId" = eh."_id"
+  )
+  
+  -- Seleccionar todos los equipos y sus respectivos padres
+  SELECT 
+    "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "duePerfomance", "electricalSecurity", "dueElectricalSecurity", "parentId", "createdAt", "updatedAt"
+  FROM 
+    EquipmentHierarchy;
+`;
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
     
@@ -32,44 +65,61 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
  
 }
 
-const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
+const getEquipments = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
     const { sector, location } = req.query;
+
+
+    const organizeEquipments = (equipments: IEquipment[]): IEquipment[] => {
+        const equipmentMap = new Map<number, EquipmentWithChildren>();
+    
+        // Primero, mapeamos cada equipo por su _id para facilitar el acceso
+        equipments.forEach(equip => {
+            if (!equipmentMap.has(equip._id)) {
+                equipmentMap.set(equip._id, { ...equip, associatedEquip: [] });
+            }
+        });
+    
+        // Luego, recorremos nuevamente los equipos para asignar los hijos a sus respectivos padres
+        equipments.forEach(equip => {
+            const parent = equipmentMap.get(equip.parentId);
+            if (parent) {
+                parent.associatedEquip.push(equipmentMap.get(equip._id)!);
+            }
+        });
+    
+        // Finalmente, filtramos los equipos para obtener solo los padres y los devolvemos
+        return Array.from(equipmentMap.values()).filter(equip => !equip.parentId);
+    };
+    
+    // En la función getEquipments, después de obtener los resultados de la consulta
+
+    
+    // Organizamos los equipos según la lógica definida
+    
 
     await db.connect();
 
-    let query = Equipment.find();
-    if (sector) {
-        query = query.where('sector', sector);
-    }
-    if (location) {
-        query = query.where('location', location);
-    }
+    try {
 
-    const equipments = await query
-
-        .lean();
-
-        const sortedEquipments = equipments.sort((a, b) => {
-            const equipA = parseInt(a.equip, 10);
-            const equipB = parseInt(b.equip, 10);
-            return equipA - equipB;
+        const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
+            host: 'localhost',
+            dialect: 'postgres'
         });
 
-    await db.disconnect();
-
-    // TODO:
-    const updatedEquipments = sortedEquipments.map( equipment => {
-        equipment.images = equipment.images.map( image => {
-            return image.includes('http') ? image : `${ process.env.HOST_NAME}equipments/${ image }`
-        });
-
-        return equipment;
-    })
+        const [results, metadata] = await sequelize.query(query);
+        const organizedEquipments = organizeEquipments(results as any);
 
 
-    res.status(200).json( updatedEquipments );
+        await db.disconnect();
 
+        res.status(200).json(organizedEquipments);
+    } catch (error) {
+        console.error(error);
+        await db.disconnect();
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 }
+
 
 
 const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
@@ -91,7 +141,7 @@ const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     try {
         
         await db.connect();
-        const equipment = await Equipment.findById(_id);
+        const equipment = await Equipment.findByPk(_id);
         if ( !equipment ) {
             await db.disconnect();
             return res.status(400).json({ message: 'No existe un producto con ese ID' });
@@ -124,7 +174,7 @@ const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
 }
 
 const createEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
-    
+    console.log(req.body)
     const { images = [] } = req.body as IEquipment;
     
     //test
@@ -139,14 +189,8 @@ const createEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     
     try {
         await db.connect();
-        const equipmentInDB = await Equipment.findOne({ equip: req.body.equip });
-        if ( equipmentInDB ) {
-            await db.disconnect();
-            return res.status(400).json({ message: 'Ya existe un producto con ese equipo' });
-        }
-        
-        const equipment = new Equipment( req.body );
-        await equipment.save();
+
+        const equipment = await Equipment.create( req.body );
         await db.disconnect();
 
         res.status(201).json( equipment );

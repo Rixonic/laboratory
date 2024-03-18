@@ -71,13 +71,10 @@ export default ConstanceService;
 import { Sequelize, DataTypes, Model } from "sequelize";
 import { IEquipment } from "../interfaces";
 
-const sequelize = new Sequelize('dbSJD', 'postgres', 'root', {
+const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
     host: 'localhost',
     dialect: 'postgres'
   });
-  export type ICriticalType = 'CRITICO'|'NO CRITICO';
-  export type ILocation = 'QUIROFANO'|'ENDOSCOPIA'|'HEMODINAMIA'|'ENFERMERIA'|'NEONATOLOGIA'|'CONSULTORIOS';
-  
 
   interface EquipmentInstance extends Model<IEquipment>, IEquipment {}
   
@@ -139,24 +136,38 @@ const sequelize = new Sequelize('dbSJD', 'postgres', 'root', {
             isIn: [['CRITICO', 'NO CRITICO']]
           }
     },
-    associatedEquip: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        validate: {
-            isIn: [['CRITICO', 'NO CRITICO']]
-          }
+    perfomance: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
     },
-    isSigned: {
-        type: DataTypes.BOOLEAN,
-        //allowNull: false,
-        defaultValue: false
+    duePerfomance: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    electricalSecurity: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    dueElectricalSecurity: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    parentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,  // Puede ser nulo si no tiene un equipo padre
+        defaultValue : null
     }
   }, {
-    tableName: 'ConstanceServices'
+    tableName: 'Equipments'
   });
 
-   Equipment.sync()
   // `sequelize.define` also returns the model
+  
+  Equipment.hasMany(Equipment, { as: 'children', foreignKey: 'parentId' });
+  Equipment.belongsTo(Equipment, { as: 'parent', foreignKey: 'parentId' });
+
+  Equipment.sync()
+
   console.log(Equipment === sequelize.models.Equipment); // true
 
   export default Equipment;

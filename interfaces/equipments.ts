@@ -1,5 +1,5 @@
 export interface IEquipment {
-    _id: string;
+    _id: number;
     equip: string;
     equipId: string;
     model: string;
@@ -11,17 +11,17 @@ export interface IEquipment {
     ecri: string;
     serialNumber: string;
     criticalType: ICriticalType;
-    associatedEquip?:IEquipment[];
+    associatedEquip?        :IEquipment[];
     
-    perfomance  : Date;
-    duePerfomance: Date;
-    electricalSecurity: Date;
-    dueElectricalSecurity: Date;
+    perfomance              : Date;
+    duePerfomance           : Date;
+    electricalSecurity      : Date;
+    dueElectricalSecurity   : Date;
     
-
+    parentId                : number;
     // TODO: agregar createdAt y updatedAt
-    createdAt: string;
-    updatedAt: string;
+    //createdAt: string;
+    //updatedAt: string;
 
 }
 

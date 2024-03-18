@@ -5,7 +5,7 @@ cloudinary.config(process.env.CLOUDINARY_URL || '');
 
 import { db } from '../../../database';
 import { IConstanceService } from '../../../interfaces/constanceService';
-import { ConstanceService } from '../../../models'
+import { ConstanceService, Equipment } from '../../../models'
 import { Sequelize } from 'sequelize';
 
 interface reqBody {
@@ -65,11 +65,11 @@ const updateConstance = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     try {
         await db.connect();
         if (authorizedChatID == userId) {
-            const equipment = await ConstanceService.findOneAndUpdate(
-                { _id: constanceId },
-                { isSigned: sign },
-                { new: true } // Esta opción devolverá el documento actualizado
-            );
+              await ConstanceService.update({ isSigned: sign }, {
+                where: {
+                    _id: constanceId
+                }
+              });
             await db.disconnect();
             return res.status(200).json({ message: 'Constancia actualizada' });
         } else {

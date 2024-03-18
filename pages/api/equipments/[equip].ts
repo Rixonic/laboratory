@@ -27,7 +27,7 @@ async function getEquipmentByEquip(req: NextApiRequest, res: NextApiResponse<Dat
 
     await db.connect();
     const { equip } = req.query;
-    const equipment = await Equipment.findOne({ equip }).lean();
+    const equipment = await Equipment.findOne({ where: { equip: equip } });
     await db.disconnect();
 
     if( !equipment ) {

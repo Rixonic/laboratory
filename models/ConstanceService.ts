@@ -19,7 +19,7 @@ export default ConstanceService;
 
 import { Sequelize, DataTypes, Model } from "sequelize";
 
-const sequelize = new Sequelize('dbSJD', 'postgres', 'root', {
+const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
     host: 'localhost',
     dialect: 'postgres'
   });

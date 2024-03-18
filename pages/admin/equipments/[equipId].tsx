@@ -21,7 +21,7 @@ const validCriticalType = ['CRITICO','NO CRITICO']
 
 
 interface FormData {
-    _id?: string;
+    _id?: number;
     equip: string;
     equipId: string;
     model: string;
@@ -560,7 +560,8 @@ export const getServerSideProps: GetServerSideProps = async ({ query }) => {
         
         equipment = tempEquipment;
         await db.connect();
-        equipment.equipId = (await Equipment.countDocuments() + 1).toString()
+        const { count, rows } = await Equipment.findAndCountAll();
+        equipment.equipId = (await count + 1).toString()
         await db.disconnect();
 
     } else {

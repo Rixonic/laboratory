@@ -152,6 +152,7 @@ const EquipmentsPage = () =>  {
     const fetchData = async () => {
       try {
         const response = await axios.get('/api/admin/equipments');
+        console.log(response.data)
         setData(response.data); 
       } catch (err) {
         setError(err); 
