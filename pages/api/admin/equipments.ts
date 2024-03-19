@@ -101,7 +101,7 @@ const getEquipments = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
 
     try {
 
-        const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
+        const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
             host: 'localhost',
             dialect: 'postgres'
         });

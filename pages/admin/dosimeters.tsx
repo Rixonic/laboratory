@@ -294,20 +294,4 @@ const EquipmentsPage = () =>  {
   )
 }
 
-function Filter({
-  column,
-  table,
-}: {
-  column: Column<any, any>
-  table: Table<any>
-}) {
-  const firstValue = table
-    .getPreFilteredRowModel()
-    .flatRows[0]?.getValue(column.id)
-
-  const columnFilterValue = column.getFilterValue()
-
-
-}
-
 export default EquipmentsPage;

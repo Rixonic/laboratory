@@ -71,7 +71,7 @@ export default ConstanceService;
 import { Sequelize, DataTypes, Model } from "sequelize";
 import { IEquipment } from "../interfaces";
 
-const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
+const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
     host: 'localhost',
     dialect: 'postgres'
   });
@@ -166,7 +166,7 @@ const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
   Equipment.hasMany(Equipment, { as: 'children', foreignKey: 'parentId' });
   Equipment.belongsTo(Equipment, { as: 'parent', foreignKey: 'parentId' });
 
-  Equipment.sync()
+{  Equipment.sync() }
 
   console.log(Equipment === sequelize.models.Equipment); // true
 

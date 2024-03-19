@@ -34,14 +34,11 @@ import {
   getFilteredRowModel,
   getExpandedRowModel,
   ColumnDef,
-  flexRender,
-  CellContext,
 
 } from '@tanstack/react-table';
 import { TheTable } from '../components/table';
 import { GetServerSideProps } from 'next';
 import { getSession } from 'next-auth/react';
-import { getDosimeterByLocation } from '../database/dbDosimeters';
 import { getUserData } from '../database/dbUsers';
 
 const currentDate = new Date();

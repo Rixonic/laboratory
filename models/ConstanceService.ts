@@ -19,7 +19,7 @@ export default ConstanceService;
 
 import { Sequelize, DataTypes, Model } from "sequelize";
 
-const sequelize = new Sequelize('dbSJD', 'postgres', 'toor', {
+const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
     host: 'localhost',
     dialect: 'postgres'
   });
