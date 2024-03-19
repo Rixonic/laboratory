@@ -17,7 +17,6 @@ interface Column {
   format?: (value: string) => React.JSX.Element;
 }
 
-
 const EquipmentsPage = (props) => {
   const dosimeters = props.dosimeter
   const [page, setPage] = React.useState(0);
