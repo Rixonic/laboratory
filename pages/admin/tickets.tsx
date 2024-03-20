@@ -6,7 +6,6 @@ import { Ticket } from "../../models";
 import EditIcon from "@mui/icons-material/Edit";
 import { GetServerSideProps } from "next";
 import { useForm } from "react-hook-form";
-import { TheTable } from "../../components/table";
 import StepLabel from "@mui/material/StepLabel";
 import {
   ChangeEvent,
@@ -15,7 +14,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { ColumnDef } from "@tanstack/react-table";
 import { tesloApi } from "../../api";
 import { format } from "date-fns";
 import * as React from "react";
@@ -39,6 +37,14 @@ import {
   FormLabel,
   Grid,
   TextField,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
 } from "@mui/material";
 import { AddOutlined, UploadOutlined } from "@mui/icons-material";
 import {validLocations}  from '../../utils/validLocations';
@@ -70,6 +76,7 @@ const validSolicitud = [
   },
 ];
 
+
 interface FormData {
   _id?: string;
   ticketId: string;
@@ -95,81 +102,57 @@ interface Props {
   filteredTicketJSON: string;
 }
 
+interface Column {
+  id: string;
+  label: string;
+  minWidth?: number;
+  align?: 'center';
+  format?: (row: ITicket) => React.JSX.Element;
+}  
 
-const cols: ColumnDef<ITicket>[] = [
+const columns: Column[] = [
+  { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
   {
-    accessorKey: "ticketId",
-    header: () => "Ticket ID",
-    footer: (props) => props.column.id,
-    meta: {
-      align: "center",
-    },
+    id: 'createdAt',
+    label: 'Creado: ',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<>{format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}</>)
+    ,
   },
+  { id: 'user', label: 'Solicitante', minWidth: 100 },
+  { id: 'summary', label: 'Descripcion', minWidth: 100 },
   {
-    accessorKey: "createdAt",
-    header: () => "Creado el",
-    cell: ({ row }) => {
-      return format(new Date(row.original.createdAt), "dd/MM/yyyy HH:mm");
-    },
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
+    id: 'status',
+    label: 'Estado',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<Chip label={row.status} color={row.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />)
+    ,
   },
+  { id: 'location', label: 'Servicio', minWidth: 100 },
   {
-    accessorKey: "user",
-    header: () => "Solicitante",
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "summary",
-    header: () => "Descripcion",
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "status",
-    header: () => "Estado",
-    cell: ({ row }) => {
-      return (
-        <Chip label={row.original.status} color={row.original.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />
-      );
-    },
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "location",
-    header: () => "Servicio",
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
-  },
-  {
-    header: "Acciones",
-    columns: [
-      {
-        id: "_id",
-        cell: ({ row }) => (
-          
-          <Stack direction="row">
-            <IconButton href={`/admin/tickets/${row.original.ticketId}`}>
-              <EditIcon />
-            </IconButton>
-            <IconButton href={`/ticket/${row.original.ticketId}`}>
-              <VisibilityIcon />
-            </IconButton>
-          </Stack>
-        ),
-        footer: (props) => props.column.id,
-      },
-    ],
+    id: 'actions',
+    label: 'Acciones',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (
+      <Stack direction="row">
+      <IconButton href={`/admin/tickets/${row.ticketId}`}>
+        <EditIcon />
+      </IconButton>
+      <IconButton href={`/ticket/${row.ticketId}`}>
+        <VisibilityIcon />
+      </IconButton>
+    </Stack>
+    ),
   },
 ];
 
 const TicketsPage: FC<Props> = ({ ticket , userData, filteredTicketJSON  }) => {
+  console.log(ticket)
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const allTickets: ITicket[] = JSON.parse(filteredTicketJSON);
   const { register, handleSubmit, formState: { errors }, getValues, setValue, watch } = useForm<FormData>({
     defaultValues: {
@@ -215,6 +198,17 @@ const TicketsPage: FC<Props> = ({ ticket , userData, filteredTicketJSON  }) => {
       newSkipped.add(activeStep);
       return newSkipped;
     });
+  };
+
+
+
+const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -333,7 +327,56 @@ const TicketsPage: FC<Props> = ({ ticket , userData, filteredTicketJSON  }) => {
       </Box>
       <Box display="flex" justifyContent="end" sx={{ mb: 2 }}>
         <Grid item xs={12} sx={{ height: 650, width: "100%" }}>
-          <TheTable data={allTickets} columns={cols} />
+        <Paper sx={{ width: '100%' }} >
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ top: 57, minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {allTickets
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format 
+                              ? column.format(row)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={allTickets.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Items por pagina"
+          labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
+        />
+      </Paper>
         </Grid>
       </Box>
 

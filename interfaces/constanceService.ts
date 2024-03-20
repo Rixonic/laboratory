@@ -1,6 +1,6 @@
 
 export interface IConstanceService {
-    _id             : Number;
+    _id             : number;
     provider        : string;
     invoiceNumber   : string;
     date            : string;

@@ -77,7 +77,6 @@ const EquipmentsPage = (props) => {
   ];
 
   return (
-
     <AdminLayout
       title={`Dosimetria `}
       subTitle={''}
@@ -144,11 +143,7 @@ const EquipmentsPage = (props) => {
           labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
         />
       </Paper>
-
-
     </AdminLayout>
-
-
   )
 }
 

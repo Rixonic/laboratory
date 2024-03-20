@@ -16,15 +16,22 @@ import Alert from "@mui/material/Alert";
 import {
     Box,
     Button,
-    Grid,
+    Paper,
     Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
     TextField,
 } from "@mui/material";
 import { AddOutlined } from "@mui/icons-material";
 import { AdminLayout } from "../../components/layouts";
 import { IConstanceService, ITicket, IUser } from "../../interfaces";
 import { getUserData } from '../../database/dbUsers';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import dosimeters from './dosimeters';
 
 interface FormData {
     _id?: string;
@@ -42,87 +49,64 @@ interface Props {
     filteredTicketJSON: string;
 }
 
-const columns: GridColDef[] = [
+interface Column {
+    id: string;
+    label: string;
+    minWidth?: number;
+    align?: 'center';
+    format?: (row: IConstanceService) => React.JSX.Element;
+  }  
+
+  const onClick = async (row) => {
+    console.log(row);
+    try {
+        const response = await fetch('/api/generatePDF', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(row),
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Constancia de servicio - ${row.provider}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+        } else {
+            console.error('Error al generar el PDF:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error al generar el PDF:', error.message);
+    }
+};
+
+const columns: Column[] = [
+    { id: 'provider', label: 'Proveedor', minWidth: 170 },
+    { id: 'invoiceNumber', label: 'Factura N', minWidth: 100 },
+    { id: 'date', label: 'Fecha', minWidth: 100 },
+    { id: 'amount', label: 'Importe', minWidth: 100 },
+    { id: 'isSigned', label: 'Esta firmado?', minWidth: 100 },
+    { id: 'concept', label: 'Concepto', minWidth: 100 },
     {
-        field: 'provider',
-        headerName: 'Proveedor',
-        width: 150,
-        sortable: false
+      id: 'download',
+      label: 'Descargar',
+      minWidth: 70,
+      align: 'center',
+      format: (row: IConstanceService) => (
+        <Stack direction="row" spacing={2}>
+            <Button variant="outlined" color="warning" size="small" onClick={() => onClick(row)}>Descargar</Button>
+        </Stack>
+      ),
     },
-    {
-        field: 'invoiceNumber',
-        headerName: 'Factura N°',
-        width: 150,
-        sortable: false
-    },
-    {
-        field: 'date',
-        headerName: 'Fecha',
-        width: 150,
-        sortable: false
-    },
-    {
-        field: 'amount',
-        headerName: 'Importe',
-        type: 'number',
-        width: 110,
-        sortable: false
-    },
-    {
-        field: 'isSigned',
-        headerName: 'Esta firmado?',
-        width: 110,
-        sortable: false
-    },
-    {
-        field: 'concept',
-        headerName: 'Concepto',
-        width: 160,
-        sortable: false
-    },
-    {
-        field: 'action',
-        headerName: 'Acciones',
-        sortable: false,
-        width: 160,
-        renderCell: (params) => {
-            const onClick = async (e) => {
-                const row =params.row
-                try {
-                  const response = await fetch('/api/generatePDF', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(row),
-                  });
-              
-                  if (response.ok) {
-                    const blob = await response.blob();
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', `Constancia de servicio - ${row.provider} .pdf`);
-                    document.body.appendChild(link);
-                    link.click();
-                  } else {
-                    console.error('Error al generar el PDF:', response.statusText);
-                  }
-                } catch (error) {
-                  console.error('Error al generar el PDF:', error.message);
-                }
-              };
-            
-            return (
-              <Stack direction="row" spacing={2}>
-                <Button variant="outlined" color="warning" size="small" onClick={onClick}>Descargar</Button>
-              </Stack>
-            );
-        },
-    },
-];
+  ];
 
 const TicketsPage: FC<Props> = ({ }) => {
+    const [page, setPage] = React.useState(0);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [data, setData] = useState<IConstanceService[] | []>([]);
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
 
@@ -151,6 +135,15 @@ const TicketsPage: FC<Props> = ({ }) => {
     const handleClickOpen = () => {
         setOpen(true);
     };
+
+    const handleChangePage = (event: unknown, newPage: number) => {
+        setPage(newPage);
+      };
+    
+      const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRowsPerPage(+event.target.value);
+        setPage(0);
+      };
 
     const getConstances = async () => {
         try {
@@ -191,24 +184,71 @@ const TicketsPage: FC<Props> = ({ }) => {
                     Crear constancia
                 </Button>
             </Box>
-            <DataGrid
-                rows={data}
-                columns={columns}
-                initialState={{
-                    pagination: {
-                        paginationModel: {
-                            pageSize: 10,
-                        },
-                    },
-                }}
+            <Paper sx={{ width: '100%' }} >
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                <TableCell align="center" colSpan={2}>
+                  Informacion
+                </TableCell>
+                <TableCell align="center" colSpan={3}>
+                  Periodo
+                </TableCell>
+                <TableCell align="center" colSpan={1}>
 
-                pageSizeOptions={[10]}
-                disableRowSelectionOnClick
-            />
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ top: 57, minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format 
+                              ? column.format(row)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={data.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Items por pagina"
+          labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
+        />
+      </Paper>
 
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Nueva constancia</DialogTitle>
-                <DialogContent>
+                <DialogContent> 
 
                     <form onSubmit={handleSubmit(onSubmit)}>
 

@@ -46,6 +46,14 @@ import {
   Grid,
   TextField,
   Divider,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
 } from "@mui/material";
 import { AddOutlined, UploadOutlined } from "@mui/icons-material";
 
@@ -56,6 +64,52 @@ import { ITicket, IUser } from "../interfaces";
 
 import { getUserData } from "../database/dbUsers";
 import { getTicketsByLocation } from "../database/dbTickets";
+
+interface Column {
+  id: string;
+  label: string;
+  minWidth?: number;
+  align?: 'center';
+  format?: (row: ITicket) => React.JSX.Element;
+}  
+
+
+const columns: Column[] = [
+  { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
+  {
+    id: 'createdAt',
+    label: 'Creado: ',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<>{format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}</>)
+    ,
+  },
+  { id: 'user', label: 'Solicitante', minWidth: 100 },
+  { id: 'summary', label: 'Descripcion', minWidth: 100 },
+  {
+    id: 'status',
+    label: 'Estado',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<Chip label={row.status} color={row.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />)
+    ,
+  },
+  { id: 'location', label: 'Servicio', minWidth: 100 },
+  {
+    id: 'actions',
+    label: 'Acciones',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (
+      <Stack direction="row">
+      <IconButton href={`/ticket/${row.ticketId}`}>
+        <VisibilityIcon />
+      </IconButton>
+    </Stack>
+    ),
+  },
+];
+
 
 const steps = [
   {
@@ -113,81 +167,6 @@ interface Props {
   filteredTicketJSON: string;
 }
 
-const cols: ColumnDef<ITicket>[] = [
-  {
-    accessorKey: "ticketId",
-    header: () => "Ticket ID",
-    footer: (props) => props.column.id,
-    meta: {
-      align: "center",
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: () => "Creado el",
-    cell: ({ row }) => {
-      return format(new Date(row.original.createdAt), "dd/MM/yyyy HH:mm");
-    },
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "user",
-    header: () => "Solicitante",
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "summary",
-    header: () => "Descripcion",
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "status",
-    header: () => "Estado",
-    cell: ({ row }) => {
-      return (
-        <Chip
-          label={row.original.status}
-          color={
-            row.original.status.toUpperCase() == "FINALIZADO"
-              ? "success"
-              : "warning"
-          }
-          variant="filled"
-        />
-      );
-    },
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
-  },
-  {
-    accessorKey: "location",
-    header: () => "Servicio",
-    meta: {
-      align: "center",
-    },
-    footer: (props) => props.column.id,
-  },
-  {
-    header: "Acciones",
-    meta: {
-      align: "center",
-    },
-
-    cell: ({ row }) => (
-      <Stack direction="row" justifyContent="center" alignItems="center">
-        <IconButton href={`/ticket/${row.original.ticketId}`}>
-          <VisibilityIcon />
-        </IconButton>
-      </Stack>
-    ),
-    footer: (props) => props.column.id,
-  },
-];
 
 const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
 
@@ -249,6 +228,19 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   const location = watch("location"); // Obtener el valor del sector seleccionado
+
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+  
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
+  
 
   useEffect(() => {
     setValue("location", location, { shouldValidate: true }); // Set the location value immediately
@@ -354,7 +346,56 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
       </Box>
       <Box display="flex" justifyContent="end" sx={{ mb: 2 }}>
         <Grid item xs={12} sx={{ height: 650, width: "100%" }}>
-          <TheTable data={allTickets} columns={cols} />
+        <Paper sx={{ width: '100%' }} >
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ top: 57, minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {allTickets
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format 
+                              ? column.format(row)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={allTickets.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Items por pagina"
+          labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
+        />
+      </Paper>
         </Grid>
       </Box>
 

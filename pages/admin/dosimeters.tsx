@@ -1,293 +1,182 @@
-import NextLink from 'next/link';
-import React, {useContext, HTMLAttributes, HTMLProps , useState, useEffect} from 'react'
-import { Box, Typography, Stack, Grid} from '@mui/material'
+import React, { useContext, useState, useEffect } from 'react'
+import { Box, Typography, Stack, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material'
 import DownloadIcon from '@mui/icons-material/Download';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { AdminLayout } from '../../components/layouts'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Button from '@mui/material/Button';
-import FirstPageIcon from '@mui/icons-material/FirstPage';
-import LastPageIcon from '@mui/icons-material/LastPage';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import IconButton from '@mui/material/IconButton';
-import TextField from '@mui/material/TextField';
 import { format } from 'date-fns';
-import { IDosimeter  } from '../../interfaces';
 import axios from 'axios';
 import { UiContext, AuthContext } from '../../context';
+import dosimeters from '../api/admin/dosimeters';
 
 import { AddOutlined, CategoryOutlined } from '@mui/icons-material';
 
-import {
-  Column,
-  Table,
-  ExpandedState,
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getExpandedRowModel,
-  ColumnDef,
-  flexRender,
+interface Column {
+  id: string;
+  label: string;
+  minWidth?: number;
+  align?: 'center';
+  format?: (value: string) => React.JSX.Element;
+}
 
-
-} from '@tanstack/react-table';
-
-const EquipmentsPage = () =>  {  
+const EquipmentsPage = () => {
   const onDownloadImage = (image: string) => {
     fetch(image)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const url = window.URL.createObjectURL(new Blob([blob]));
-            const link = document.createElement('a');
-            link.href = url;
-            const defaultFileName = 'dosimetria.pdf';
-            link.setAttribute('download', defaultFileName);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode?.removeChild(link);
-        });
-};
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob]));
+        const link = document.createElement('a');
+        link.href = url;
+        const defaultFileName = 'dosimetria.pdf';
+        link.setAttribute('download', defaultFileName);
+        document.body.appendChild(link);
+        link.click();
+        link.parentNode?.removeChild(link);
+      });
+  };
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
 
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
 
-  const columns = React.useMemo<ColumnDef<IDosimeter>[]>(
-    () => [
-      
-      {
-        header: 'Informacion',
-        footer: props => props.column.id,
-        columns: [
-          {
-            accessorKey: 'headquarter',
-            header: () => 'Sede',
-            size:200,
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'service',
-            header: 'Servicio',
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'month',
-            header: 'Mes',
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'year',
-            header: 'Año',
-            footer: props => props.column.id,
-          },
-        ],
-      },
-      {
-        header: 'Descargar',
-        columns: [
-          {
-            id: '_id',
-            cell: ({ row }) => (
-              <Stack direction="row">
-                
-                <IconButton
-               
-                                onClick={() => onDownloadImage(row.original.document)}
-                            >
-                              <DownloadIcon/>
-                            </IconButton>
-              </Stack>
-            ),
-            footer: props => props.column.id,
-          },
-        ],
-      },
-    ],
-    []
-  )
-
+  const columns: Column[] = [
+    { id: 'headquarter', label: 'Sede', minWidth: 170 },
+    { id: 'service', label: 'Servicio', minWidth: 100 },
+    { id: 'location', label: 'Sector', minWidth: 100 },
+    {
+      id: 'month',
+      label: 'Mes',
+      minWidth: 70,
+      align: 'center',
+    },
+    {
+      id: 'year',
+      label: 'Año',
+      minWidth: 70,
+      align: 'center',
+    },
+    {
+      id: 'document',
+      label: 'Descargar',
+      minWidth: 70,
+      align: 'center',
+      format: (value: string) => (
+        <IconButton
+          onClick={() => onDownloadImage(value)}
+        >
+          <DownloadIcon />
+        </IconButton>
+      ),
+    },
+  ];
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [data, setData] = useState([]);
 
-  const [error, setError] = useState(null);
-
-  const { user } = useContext(AuthContext);
-  const userSector = user?.email.toUpperCase()
-  console.log();
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('/api/admin/dosimeters', {
-          params: {
-            service: user.role === 'admin'? null: user.email.toUpperCase(), 
-          },
-        });
-
-        const formattedData = response.data.map(equipment => {
-
-          const parsedEquipment = {
-            ...equipment,
-            perfomance: equipment.perfomance ? format(new Date(equipment.perfomance), 'MM/yyyy') : null,
-            duePerfomance: equipment.duePerfomance ? format(new Date(equipment.duePerfomance), 'MM/yyyy') : null,
-            electricalSecurity: equipment.electricalSecurity ? format(new Date(equipment.electricalSecurity), 'MM/yyyy') : null,
-            dueElectricalSecurity: equipment.dueElectricalSecurity ? format(new Date(equipment.dueElectricalSecurity), 'MM/yyyy') : null,
-          };
-        
-          return parsedEquipment;
-        });
-
-      setData(formattedData); 
+        const response = await axios.get('/api/admin/dosimeters');
+        setData(response.data);
       } catch (err) {
-        setError(err); 
+        console.log(err);
       }
     };
-    if (userSector){
     fetchData();
-  }
-  }, [userSector]);
-
-  
-  console.log(data[0])
-
-  const [expanded, setExpanded] = React.useState<ExpandedState>({})
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      expanded,
-      
-    },
-    paginateExpandedRows: false,
-    initialState: {
-      pagination: {
-          pageSize: 10,
-      },
-
-
-  },
-    onExpandedChange: setExpanded,
-    getSubRows: row => row.associatedEquip,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    //debugTable: true,
-  })
+  });
 
   return (
-
-    <AdminLayout 
-        title={`Dosimetria `} 
-        subTitle={''}
-        icon={ <CategoryOutlined /> }
+    <AdminLayout
+      title={`Dosimetria `}
+      subTitle={''}
+      icon={<CategoryOutlined />}
     >
       <Stack
-  direction="column"
-  justifyContent="space-between"
-  alignItems="center"
-  spacing={2}
->
-      <table>
-        <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => {
-                return (
-                  <th      key={header.id}                {...{
-                    key: header.id,
-                    colSpan: header.colSpan,
-                    style: {
-                      width: header.getSize(),
-                    },
-                  }}>
-                    {header.isPlaceholder ? null : (
-                      <Box>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-
-                      </Box>
-                    )}
-                  </th>
-                )
-              })}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map(row => {
-            return (
-              <tr key={row.id}>
-                {row.getVisibleCells().map(cell => {
-                  return (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                        
-                      )}
-                    </td>
-                  )
-                })}
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-      
-      <Stack
-  direction="row"
-  justifyContent="space-between"
-  alignItems="center"
-  spacing={30}
->
-      <Stack direction="row" >
-        <IconButton
-          onClick={() => {table.setPageIndex(0);}}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <FirstPageIcon />
-        </IconButton>
-          <IconButton
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          <NavigateBeforeIcon />
-        </IconButton>
-          <IconButton
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          <NavigateNextIcon />
-        </IconButton>
-        <IconButton
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          disabled={!table.getCanNextPage()}
-        >
-          <LastPageIcon />
-        </IconButton>
-        </Stack>
-        <span className="flex items-center gap-1">
-          <div>Page:<strong>
-            {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount()}
-          </strong></div>
-        </span>
-        <Button
-        startIcon={ <AddOutlined /> }
-        color="secondary"
-        href="/admin/dosimeters/new"
+        sx={{marginTop:4}}
+        direction="column"
+        justifyContent="space-between"
+        alignItems="center"
+        spacing={4}
       >
-        Agregar 
-      </Button>
-        
+        <Paper sx={{ width: "auto" }} >
+          <TableContainer sx={{ maxHeight: 440 }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  <TableCell align="center" colSpan={2}>
+                    Informacion
+                  </TableCell>
+                  <TableCell align="center" colSpan={3}>
+                    Periodo
+                  </TableCell>
+                  <TableCell align="center" colSpan={1}>
 
-        
-        </Stack>
-        
-        </Stack>
-        
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{ top: 57, minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => {
+                    return (
+                      <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                        {columns.map((column) => {
+                          const value = row[column.id];
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              {column.format && typeof value === 'string'
+                                ? column.format(value)
+                                : value}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 100]}
+            component="div"
+            count={data.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Items por pagina"
+            labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
+          />
+        </Paper>
+        <Button
+          startIcon={<AddOutlined />}
+          color="secondary"
+          href="/admin/dosimeters/new"
+        >
+          Agregar
+        </Button>
+
+
+
+
+
+      </Stack>
+
     </AdminLayout>
 
 

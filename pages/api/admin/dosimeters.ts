@@ -39,15 +39,10 @@ const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => 
     await db.connect();
 
     let query = Dosimeter.find();
-    if (service) {
-        query = query.where('service', service);
-    }
     
     query = query.sort({year: -1, month: -1 });
 
     const equipments = await query.lean();
-
-
 
     // Verificar y formatear la fecha de perfomance
 

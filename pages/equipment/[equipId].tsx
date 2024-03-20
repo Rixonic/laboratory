@@ -1,11 +1,10 @@
 import React from 'react'
 import { NextPage, GetServerSideProps, GetStaticPaths, GetStaticProps } from 'next';    //Queda
 import { useRouter } from 'next/router';       
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';                                         //Queda
-import { Box, Button, Chip, Grid, Typography, Divider } from '@mui/material';                    //Queda
+import { Box, Button, Chip, Grid, Typography, Divider, IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';                    //Queda
 import { ShopLayout } from '../../components/layouts';                                  //Queda
 import { ItemSlideshow } from '../../components/item';
-import { TheTable } from '../../components/table';
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { dbEquipments, dbTickets } from '../../database';                                            //Se modifica?
 import { IEquipment, ITicket } from '../../interfaces';                       //Se modifica
 import { format } from 'date-fns';
@@ -14,66 +13,64 @@ interface Props {
   tickets: ITicket[]
 }
 
-import { ColumnDef } from '@tanstack/react-table';
+interface Column {
+  id: string;
+  label: string;
+  minWidth?: number;
+  align?: 'center';
+  format?: (row: ITicket) => React.JSX.Element;
+}  
 
-const cols:ColumnDef<ITicket>[]=[
+const columns: Column[] = [
+  { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
   {
-    accessorKey: 'ticketId',
-    header: () => 'ID',
-    footer: props => props.column.id,
-    meta: {
-      align: 'center'
-    },
-    
+    id: 'createdAt',
+    label: 'Creado: ',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<>{format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}</>)
+    ,
   },
+  { id: 'user', label: 'Solicitante', minWidth: 100 },
+  { id: 'summary', label: 'Descripcion', minWidth: 100 },
   {
-    accessorKey: 'createdAt',
-    header: () => 'Creado el',
-    cell: ({ row }) => {
-      return (          
-          format(new Date(row.original.createdAt), 'dd/MM/yyyy')
-      );
-    },
-    meta: {
-      align: 'center'
-    },
-    footer: props => props.column.id,
+    id: 'status',
+    label: 'Estado',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (<Chip label={row.status} color={row.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />)
+    ,
   },
+  { id: 'location', label: 'Servicio', minWidth: 100 },
   {
-    accessorKey: 'user',
-    header: () => 'Solicitante',
-    footer: props => props.column.id,
+    id: 'actions',
+    label: 'Acciones',
+    minWidth: 70,
+    align: 'center',
+    format: (row: ITicket) => (
+      <Stack direction="row">
+      <IconButton href={`/ticket/${row.ticketId}`}>
+        <VisibilityIcon />
+      </IconButton>
+    </Stack>
+    ),
   },
-  {
-    accessorKey: 'summary',
-    header: () => 'Descripcion',
-    footer: props => props.column.id,
-  },
-  {
-    accessorKey: 'status',
-    header: () => 'Descripcion',
-    cell: ({ row }) => {
-      return (
-        <Chip label={row.original.status} color="warning" variant="filled" />
-      );
-    },
-    meta: {
-      align: 'center'
-    },
-    footer: props => props.column.id,
-  },
-  {
-    accessorKey: 'location',
-    header: () => 'Servicio',
-    meta: {
-      align: 'center'
-    },
-    footer: props => props.column.id,
-  },
- ]
+];
 
 
 const EquipmentPage:NextPage<Props> = ({ equipment, tickets }) => {
+
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
 
   const router = useRouter();
   console.log(tickets);
@@ -125,7 +122,56 @@ const EquipmentPage:NextPage<Props> = ({ equipment, tickets }) => {
   </Grid>
   <Grid item xs={12} sx={{ height:650, width: '100%' }}>
 
-     <TheTable data={tickets} columns={cols} />
+  <Paper sx={{ width: '100%' }} >
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ top: 57, minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {tickets
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format 
+                              ? column.format(row)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={tickets.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Items por pagina"
+          labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
+        />
+      </Paper>
 
             </Grid>
 
