@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-export default async (req, res) => {
+export default async function handler (req, res) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'Gmail', // Cambia esto al servicio de correo que desees usar

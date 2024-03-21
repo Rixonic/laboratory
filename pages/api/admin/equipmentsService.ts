@@ -35,7 +35,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
 
 const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
     const { service} = req.query;
+    const { sede, locations } = req.query;
 
+    console.log(sede)
+    console.log(locations)
+    console.log(req)
     await db.connect();
 
     let query = EquipmentService.find();

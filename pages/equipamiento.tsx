@@ -1,212 +1,101 @@
-import React, {useContext, HTMLAttributes, HTMLProps , useState, useEffect} from 'react'
+import React, { useState, useEffect} from 'react'
 import { AdminLayout } from '../components/layouts'
-import TextField from '@mui/material/TextField';
 import { format } from 'date-fns';
 import { IEquipmentService  } from '../interfaces';
 import axios from 'axios';
-import { UiContext, AuthContext } from '../context';
-import {access}  from '../utils/access';
-import { AddOutlined, CategoryOutlined } from '@mui/icons-material';
+import { CategoryOutlined } from '@mui/icons-material';
 
-/*
-Ejemplos de cosas que si funcionaron
+const rowWidth = [10, 100, 100, 100, 100, 100, 100]
+const currentDate = new Date();
 
-          {
-            accessorKey: 'equip',
-            header: () => 'Equipo',
-            cell: ({ row }) => (
-              <td className={  row.original.equip == "TENSIOMETRO" ? 'bold' : null }>
-              {row.original.equip }
-            </td>
-            ),
-            footer: props => props.column.id,
-          },
+const Row = ({ row }) => {
+  const dueDateElectricalSecurity = new Date(row.dueElectricalSecurity);
+  const daysDifferenceElectricalSecurity = Math.floor(
+    (dueDateElectricalSecurity.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  let classNameElectricalSecurity : 'success'|'warning'|'error';
+  if (daysDifferenceElectricalSecurity <= -60 && row.duePerfomance) {
+    classNameElectricalSecurity = 'error';
+  } else if (daysDifferenceElectricalSecurity >= -60 && daysDifferenceElectricalSecurity <= 60) {
+    classNameElectricalSecurity = 'warning';
+  } else if (daysDifferenceElectricalSecurity >= 60) {
+    classNameElectricalSecurity = 'success';
+  }
 
-*/
- 
-import {
-  Column,
-  Table,
-  ExpandedState,
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getExpandedRowModel,
-  ColumnDef,
+  const dueDatePerfomance = new Date(row.duePerfomance);
+  const daysDifferencePerfomance = Math.floor(
+    (dueDatePerfomance.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  let classNamePerformance : 'success'|'warning'|'error';
+  if (daysDifferencePerfomance <= -60 && row.duePerfomance) {
+    classNamePerformance = 'error';
+  } else if (daysDifferencePerfomance >= -60 && daysDifferencePerfomance <= 60) {
+    classNamePerformance = 'warning';
+  } else if (daysDifferencePerfomance >= 60) {
+    classNamePerformance = 'success';
+  }
+  return (
+    <>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }} >
+        <TableCell width={rowWidth[1]} align='center'>{row.ownId}</TableCell>
+        <TableCell width={rowWidth[2]} align="left">{row.equip}</TableCell>
+        <TableCell width={rowWidth[3]} align="center">{row.model}</TableCell>
+        <TableCell width={rowWidth[4]} align="center">{row.brand}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.serialNumber}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.service}</TableCell>
+        <TableCell width={rowWidth[3]} align="center">{row.perfomance}</TableCell>
+        <TableCell width={rowWidth[4]} align="center">{row.duePerfomance && <Chip label={format(new Date(row.duePerfomance), 'MM/yyyy').toString()} color={classNamePerformance} />}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.electricalSecurity}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.dueElectricalSecurity && <Chip label={format(new Date(row.dueElectricalSecurity), 'MM/yyyy').toString()} color={classNameElectricalSecurity} />}</TableCell>
 
-} from '@tanstack/react-table';
-import { TheTable } from '../components/table';
+      </TableRow>
+      {row.associatedEquip?.length > 0 && (
+        <TableRow sx={{ '& > *': { borderBottom: 0 } }}>
+          <TableCell style={{ paddingBottom: 1, paddingTop: 0, paddingRight:0, paddingLeft:0 }} colSpan={10}>
+              <Table aria-label="collapsible table">
+                <TableBody>
+                  {row.associatedEquip?.map((associatedRow) => (
+                    <Row key={associatedRow.equipId} row={associatedRow} />
+                  ))}
+                </TableBody>
+              </Table>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+};
+
 import { GetServerSideProps } from 'next';
 import { getSession } from 'next-auth/react';
 import { getUserData } from '../database/dbUsers';
+import { TableRow, TableCell, Chip, Table, TableBody, TableContainer, Paper, TableHead, TablePagination } from '@mui/material';
 
-const currentDate = new Date();
-
-const EquipmentsPage = (props) =>  {  
-  const userData = props.userData
-  console.log(userData.locations.includes("laboratorio"))
-  const columns :ColumnDef<IEquipmentService>[]=[
-
-      {
-        header: 'Identificacion',
-        footer: props => props.column.id,
-        columns: [
-          {
-            accessorKey: 'ownId',
-            header: () => 'ID',
-            size: 40,
-            footer: props => props.column.id,
-            meta: {
-              align: 'center'
-            },
-            
-          },
-          {
-            accessorKey: 'serialNumber',
-            header: () => 'Serie',
-            size: 170,
-            footer: props => props.column.id,
-          },
-
-        ],
-      },
-      {
-        header: 'Informacion',
-        footer: props => props.column.id,
-        columns: [
-          {
-            accessorKey: 'equip',
-            header: () => 'Equipo',
-            size: 400,
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'brand',
-            header: 'Marca',
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'model',
-            header: 'Modelo',
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'service',
-            size: 120,
-            header: () => <span>Sector</span>,
-            footer: props => props.column.id,
-          },
-        ],
-      },
-      {
-        header: 'Acciones',
-        columns: [
-          {
-            accessorKey: 'perfomance',
-            header: () => 'Perfomance',
-            size: 100,
-            footer: (props) => props.column.id,
-            meta: {
-              align: 'center'
-            },
-          },
-          {
-            accessorKey: 'duePerfomance',
-            header: 'Proxima Asistencia',
-            size: 100,
-            cell: ({ row }) => {
-              const dueDate = new Date(row.original.duePerfomance);
-              const daysDifference = Math.floor(
-                (dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-              );
-              let className = '';
-              if (daysDifference <= -60 && row.original.duePerfomance) {
-                className = 'red';
-              } else if (daysDifference >= -60 && daysDifference <= 60) {
-                className = 'yellow';
-              } else if (daysDifference >= 60) {
-                className = 'green';
-              }
-          
-              return (
-                <span className={className}>
-                  {row.original.duePerfomance ? format(dueDate, 'MM/yyyy') : null}
-                </span>
-              );
-            },
-            meta: {
-              align: 'center'
-            },
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'electricalSecurity',
-            header: 'Seguridad Electrica',
-            size: 100,
-            meta: {
-              align: 'center'
-            },
-            footer: props => props.column.id,
-          },
-          {
-            accessorKey: 'dueElectricalSecurity',
-            header: 'Proxima Asistencia',
-            size: 100,
-            cell: ({ row }) => {
-              const dueDate = new Date(row.original.dueElectricalSecurity);
-              const daysDifference = Math.floor(
-                (dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-              );
-              let className = '';
-              if (daysDifference <= -60 && row.original.dueElectricalSecurity) {
-                className = 'red';
-              } else if (daysDifference >= -60 && daysDifference <= 60) {
-                className = 'yellow';
-              } else if (daysDifference >= 60) {
-                className = 'green';
-              }
-          
-              return (
-                <span className={className}>
-                  {row.original.dueElectricalSecurity ? format(dueDate, 'MM/yyyy') : null}
-                </span>
-              );
-            },
-            meta: {
-              align: 'center'
-            },
-            footer: props => props.column.id,
-          },
-          
-        ],
-      },
-    ]
+const EquipmentsPage = (props) =>  { 
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
   
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
 
-  const [data, setData] = useState([]);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(+event.target.value);
+    setPage(0);
+  };
 
-  const [error, setError] = useState(null);
-  
-  
-  
-
+  const userData = props.userData;
   const [filteredEquips, setFilteredEquips] = useState<IEquipmentService[]>([]);
-  const { user } = useContext(AuthContext);
-  const userIndex = access.findIndex((data) => data.user === user?.email);
-  const userLocation = userIndex !== -1 ? access[userIndex].locations : "";
-  const userSector = user?.email.toUpperCase()
-  console.log();
   useEffect(() => {
-   
     const fetchData = async () => {
       try {
         const response = await axios.get('/api/admin/equipmentsService', {
-
+          params: {
+            locations: userData.locations,
+            sede: userData.sede
+          }
         });
-        console.log(response.data)
         const formattedData = response.data.map(equipment => {
-
           const parsedEquipment = {
             ...equipment,
             perfomance: equipment.perfomance ? format(new Date(equipment.perfomance), 'MM/yyyy') : null,
@@ -214,11 +103,8 @@ const EquipmentsPage = (props) =>  {
             electricalSecurity: equipment.electricalSecurity ? format(new Date(equipment.electricalSecurity), 'MM/yyyy') : null,
             dueElectricalSecurity: equipment.dueElectricalSecurity ? new Date(equipment.dueElectricalSecurity) : null,
           };
-          //
-
           return parsedEquipment;
         });
-        
         if(userData.role == "COORDINADOR CASTELAR"){
           const filtered = formattedData.filter((equip) => userData.locations.includes(equip.service.toLowerCase())  || equip.sede == "CASTELAR").sort((a, b) => a.ownId - b.ownId);
           setFilteredEquips(filtered);
@@ -228,87 +114,58 @@ const EquipmentsPage = (props) =>  {
         }
 
       } catch (err) {
-        setError(err); 
+        console.log(err); 
       }
     };
-  
     fetchData();
-  
-  }, [userSector]);
-
-  
-
-  const [expanded, setExpanded] = React.useState<ExpandedState>({})
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      expanded,
-      
-    },
-    paginateExpandedRows: false,
-    initialState: {
-      pagination: {
-          pageSize: 10,
-      },
-
-
-  },
-    onExpandedChange: setExpanded,
-    getSubRows: row => row.associatedEquip,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
-    
-    //debugTable: true,
-  })
+  }, []);
 
   return (
-
     <AdminLayout 
         title={`Equipamiento `} 
         subTitle={'Listado de equipamiento'}
         icon={ <CategoryOutlined /> }
     >
-<TheTable data={filteredEquips} columns={columns}/>
+      <TableContainer component={Paper}>
+        <Table aria-label="collapsible table">
+          <TableHead>
+            <TableRow>
+              <TableCell width={rowWidth[1]} align='center'>ID</TableCell>
+              <TableCell width={rowWidth[2]} align='center'>Equipo</TableCell>
+              <TableCell width={rowWidth[3]} align='center'>Modelo</TableCell>
+              <TableCell width={rowWidth[4]} align='center'>Marca</TableCell>
+              <TableCell width={rowWidth[5]} align='center'>Serie</TableCell>
+              <TableCell width={rowWidth[6]} align='center'>Sector</TableCell>
+              <TableCell width={rowWidth[3]} align='center'>Performance</TableCell>
+              <TableCell width={rowWidth[4]} align='center'>Proxima asistencia</TableCell>
+              <TableCell width={rowWidth[5]} align='center'>Seguridad electrica</TableCell>
+              <TableCell width={rowWidth[6]} align='center'>Proxima asistencia</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+              {filteredEquips.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+              <Row key={row._id} row={row} />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={filteredEquips.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Equipos por pagina"
+          labelDisplayedRows={({ from, to, count }) => `Mostrando equipos del ${from} al ${to} de ${count}`}
+        />
         
     </AdminLayout>
 
 
   )
 }
-
-function Filter({
-  column,
-  table,
-}: {
-  column: Column<any, any>
-  table: Table<any>
-}) {
-  const firstValue = table
-    .getPreFilteredRowModel()
-    .flatRows[0]?.getValue(column.id)
-
-  const columnFilterValue = column.getFilterValue()
-
-  return typeof firstValue === 'number' ? (
-    <div className="flex space-x-2">
-     
-      
-    </div>
-  ) : (
-    <TextField
-      type="text"
-      value={(columnFilterValue ?? '') as string}
-      onChange={e => column.setFilterValue(e.target.value)}
-      placeholder={`Buscar`}
-      size="small"
-    />
-  )
-}
-
 
 export const getServerSideProps: GetServerSideProps = async ({
   query,

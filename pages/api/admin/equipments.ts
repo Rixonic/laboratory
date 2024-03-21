@@ -66,8 +66,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
 }
 
 const getEquipments = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
-    const { sector, location } = req.query;
-
 
     const organizeEquipments = (equipments: IEquipment[]): IEquipment[] => {
         const equipmentMap = new Map<number, EquipmentWithChildren>();

@@ -9,7 +9,7 @@ function imageToBase64(imagePath) {
     return Buffer.from(image).toString('base64');
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler (req: NextApiRequest, res: NextApiResponse) {
     const items = req.body.items;
 
     // Generar el string con el formato de bodyItems

@@ -9,7 +9,7 @@ function imageToBase64(imagePath) {
     return Buffer.from(image).toString('base64');
 }
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+export default async function handler (req: NextApiRequest, res: NextApiResponse) {
 
     // Reemplazar variables en la plantilla con valores del cuerpo de la solicitud
     const replacedHtml = templateConstance.replace(/{{\s*([^}]+)\s*}}/g, (match, variable) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Stack, Collapse, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, TablePagination } from '@mui/material'
+import { Stack, Collapse, Table, TableBody, TableCell, TableHead, TableRow, Paper, TableContainer, TablePagination, Chip } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { AdminLayout } from '../../components/layouts';
@@ -10,8 +10,36 @@ import axios from 'axios';
 
 const rowWidth = [10, 100, 100, 100, 100, 100, 100]
 
+const currentDate = new Date();
+
 const Row = ({ row }) => {
   const [open, setOpen] = useState(false);
+
+  const dueDateElectricalSecurity = new Date(row.dueElectricalSecurity);
+  const daysDifferenceElectricalSecurity = Math.floor(
+    (dueDateElectricalSecurity.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  let classNameElectricalSecurity : 'success'|'warning'|'error';
+  if (daysDifferenceElectricalSecurity <= -60 && row.duePerfomance) {
+    classNameElectricalSecurity = 'error';
+  } else if (daysDifferenceElectricalSecurity >= -60 && daysDifferenceElectricalSecurity <= 60) {
+    classNameElectricalSecurity = 'warning';
+  } else if (daysDifferenceElectricalSecurity >= 60) {
+    classNameElectricalSecurity = 'success';
+  }
+
+  const dueDatePerfomance = new Date(row.duePerfomance);
+  const daysDifferencePerfomance = Math.floor(
+    (dueDatePerfomance.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  let classNamePerformance : 'success'|'warning'|'error';
+  if (daysDifferencePerfomance <= -60 && row.duePerfomance) {
+    classNamePerformance = 'error';
+  } else if (daysDifferencePerfomance >= -60 && daysDifferencePerfomance <= 60) {
+    classNamePerformance = 'warning';
+  } else if (daysDifferencePerfomance >= 60) {
+    classNamePerformance = 'success';
+  }
 
   const handleRowToggle = () => {
     setOpen(!open);
@@ -37,6 +65,10 @@ const Row = ({ row }) => {
         <TableCell width={rowWidth[4]} align="center">{row.brand}</TableCell>
         <TableCell width={rowWidth[5]} align="center">{row.serialNumber}</TableCell>
         <TableCell width={rowWidth[5]} align="center">{row.sector}</TableCell>
+        <TableCell width={rowWidth[3]} align="center">{row.perfomance}</TableCell>
+        <TableCell width={rowWidth[4]} align="center">{row.duePerfomance && <Chip label={row.duePerfomance} color={classNamePerformance} />}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.electricalSecurity}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.dueElectricalSecurity && <Chip label={row.dueElectricalSecurity} color={classNameElectricalSecurity} />}</TableCell>
         <TableCell width={rowWidth[6]} align="center">
           <Stack direction="row">
             <IconButton href={`/admin/equipments/${row.equipId}`}><EditIcon /></IconButton>
@@ -46,7 +78,7 @@ const Row = ({ row }) => {
       </TableRow>
       {row.associatedEquip.length > 0 && (
         <TableRow sx={{ '& > *': { borderBottom: 0 } }}>
-          <TableCell style={{ paddingBottom: 1, paddingTop: 0, paddingRight:0, paddingLeft:0 }} colSpan={8}>
+          <TableCell style={{ paddingBottom: 1, paddingTop: 0, paddingRight:0, paddingLeft:0 }} colSpan={12}>
             <Collapse in={open} timeout="auto" unmountOnExit>
               <Table aria-label="collapsible table">
                 <TableBody>
@@ -105,6 +137,10 @@ const EquipmentsPage = () => {
               <TableCell width={rowWidth[4]} align='center'>Marca</TableCell>
               <TableCell width={rowWidth[5]} align='center'>Serie</TableCell>
               <TableCell width={rowWidth[6]} align='center'>Sector</TableCell>
+              <TableCell width={rowWidth[3]} align='center'>Performance</TableCell>
+              <TableCell width={rowWidth[4]} align='center'>Proxima asistencia</TableCell>
+              <TableCell width={rowWidth[5]} align='center'>Seguridad electrica</TableCell>
+              <TableCell width={rowWidth[6]} align='center'>Proxima asistencia</TableCell>
               <TableCell width={rowWidth[6]} align='center'>Action</TableCell>
             </TableRow>
           </TableHead>

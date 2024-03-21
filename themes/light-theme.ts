@@ -1,7 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 import { red,  } from '@mui/material/colors';
 
-
 export const lightTheme = createTheme({
   palette: {
     mode: 'light',
@@ -83,7 +82,15 @@ export const lightTheme = createTheme({
           borderRadius: '10px',
         }
       }
+    },
+
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          paddingTop: 4,
+          paddingBottom: 4,
+        }
+      }
     }
-    
   }
 });

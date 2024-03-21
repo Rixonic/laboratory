@@ -1,9 +1,6 @@
 import { signIn, getSession, getProviders } from "next-auth/react";
-
 import {
   ConfirmationNumberOutlined,
-  Margin,
-  Padding,
 } from "@mui/icons-material";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
@@ -11,7 +8,6 @@ import Typography from "@mui/material/Typography";
 import { Ticket } from "../models";
 import { GetServerSideProps } from "next";
 import { useForm } from "react-hook-form";
-import { TheTable } from "../components/table";
 import StepLabel from "@mui/material/StepLabel";
 import CloseIcon from "@mui/icons-material/Close";
 import {
@@ -21,7 +17,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { ColumnDef } from "@tanstack/react-table";
 import { tesloApi } from "../api";
 import { format } from "date-fns";
 import * as React from "react";
@@ -56,12 +51,9 @@ import {
   TableRow,
 } from "@mui/material";
 import { AddOutlined, UploadOutlined } from "@mui/icons-material";
-
 import { validLocations } from "../utils/validLocations";
-
 import { AdminLayout } from "../components/layouts";
 import { ITicket, IUser } from "../interfaces";
-
 import { getUserData } from "../database/dbUsers";
 import { getTicketsByLocation } from "../database/dbTickets";
 
@@ -69,10 +61,9 @@ interface Column {
   id: string;
   label: string;
   minWidth?: number;
-  align?: 'center';
-  format?: (row: ITicket) => React.JSX.Element;
+  align?: 'inherit' | 'left' | 'center' | 'right' | 'justify';
+  format?: (row: any) => React.JSX.Element;
 }  
-
 
 const columns: Column[] = [
   { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
@@ -227,7 +218,7 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const location = watch("location"); // Obtener el valor del sector seleccionado
+  const location = watch("location"); 
 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -241,7 +232,6 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
     setPage(0);
   };
   
-
   useEffect(() => {
     setValue("location", location, { shouldValidate: true }); // Set the location value immediately
     const sectorTicketCount = (allTickets || []).filter(
