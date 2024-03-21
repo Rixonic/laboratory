@@ -1,7 +1,7 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, FC} from 'react'
 import { AdminLayout } from '../components/layouts'
 import { format } from 'date-fns';
-import { IEquipmentService  } from '../interfaces';
+import { IEquipmentService, IUser  } from '../interfaces';
 import axios from 'axios';
 import { CategoryOutlined } from '@mui/icons-material';
 
@@ -71,7 +71,14 @@ import { getSession } from 'next-auth/react';
 import { getUserData } from '../database/dbUsers';
 import { TableRow, TableCell, Chip, Table, TableBody, TableContainer, Paper, TableHead, TablePagination } from '@mui/material';
 
-const EquipmentsPage = (props) =>  { 
+interface Props {
+  //ticket: ITicket;
+  userData: IUser;
+  //filteredTicketJSON: string;
+}
+
+
+const EquipmentsPage: FC<Props> = ({  userData }) =>  { 
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   
@@ -84,15 +91,15 @@ const EquipmentsPage = (props) =>  {
     setPage(0);
   };
 
-  const userData = props.userData;
   const [filteredEquips, setFilteredEquips] = useState<IEquipmentService[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get('/api/admin/equipmentsService', {
           params: {
-            locations: userData.locations,
-            sede: userData.sede
+            locations: JSON.stringify(userData.locations),
+            sede: JSON.stringify(userData.sede),
           }
         });
         const formattedData = response.data.map(equipment => {
@@ -105,20 +112,14 @@ const EquipmentsPage = (props) =>  {
           };
           return parsedEquipment;
         });
-        if(userData.role == "COORDINADOR CASTELAR"){
-          const filtered = formattedData.filter((equip) => userData.locations.includes(equip.service.toLowerCase())  || equip.sede == "CASTELAR").sort((a, b) => a.ownId - b.ownId);
-          setFilteredEquips(filtered);
-        }else {
-          const filtered = formattedData.filter((equip) => userData.locations.includes(equip.service.toLowerCase())).sort((a, b) => a.ownId - b.ownId);
-          setFilteredEquips(filtered);
-        }
+        setFilteredEquips(formattedData);
 
       } catch (err) {
         console.log(err); 
       }
     };
     fetchData();
-  }, []);
+  }, [userData.sede,userData.locations]);
 
   return (
     <AdminLayout 

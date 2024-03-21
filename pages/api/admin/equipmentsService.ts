@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { db } from '../../../database';
 import { IEquipmentService } from '../../../interfaces/equipmentsService';
 import { EquipmentService } from '../../../models';
+import { JSONParser } from 'formidable/parsers';
 
 type Data = 
 | { message: string }
@@ -34,34 +35,20 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
 }
 
 const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
-    const { service} = req.query;
-    const { sede, locations } = req.query;
+    const { locations, sede} = req.query
 
-    console.log(sede)
-    console.log(locations)
-    console.log(req)
     await db.connect();
+    let data = await EquipmentService.find();
 
-    let query = EquipmentService.find();
-    if (service) {
-        query = query.where('service', service);
-    }
-
-
-    const equipments = await query.lean();
-
-    const sortedEquipments = equipments.sort((a, b) => {
+    const equipments =  data.filter((equip) => locations.includes(equip.service.toUpperCase()) &&  sede.includes(equip.sede.toUpperCase()) ).sort((a, b) =>  {
         const equipA = parseInt(a.equip, 10);
         const equipB = parseInt(b.equip, 10);
         return equipA - equipB;
-    });
-
-    // Verificar y formatear la fecha de perfomance
+    }); 
 
     await db.disconnect();
 
-    res.status(200).json(sortedEquipments);
-
+    res.status(200).json(equipments);
 }
 
 
