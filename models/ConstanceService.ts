@@ -1,22 +1,3 @@
-/*import mongoose, { Schema, model, Model } from 'mongoose';
-import { IConstanceService } from '../interfaces';
-
-const userSchema = new Schema({
-    provider        : { type: String, required: true, default:" " },
-    invoiceNumber   : { type: String, required: true, default:" " },
-    date            : { type: String, required: true },
-    amount          : { type: Number, required: true, default:" " },
-    concept         : { type: String, required: true, default:" " },
-    isSigned        : { type: Boolean, required: true, default: false },
-}, {
-    timestamps: true,
-})
-
-const ConstanceService:Model<IConstanceService> = mongoose.models.ConstanceService || model('ConstanceService',userSchema);
-
-export default ConstanceService;
-*/
-
 import { Sequelize, DataTypes, Model } from "sequelize";
 
 const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
@@ -36,7 +17,6 @@ const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USER
   
   interface ConstanceServiceInstance extends Model<ConstanceServiceAttributes>, ConstanceServiceAttributes {}
   
-
   const ConstanceService = sequelize.define<ConstanceServiceInstance>('ConstanceService', {
     _id: {
         type: DataTypes.INTEGER,

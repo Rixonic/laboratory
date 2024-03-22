@@ -1,6 +1,6 @@
 
 export interface ITicket {
-    _id?: string;
+    _id?: number;
     images: string[];
     ticketId: string;
     location: string;
