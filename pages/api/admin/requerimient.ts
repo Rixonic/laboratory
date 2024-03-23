@@ -46,7 +46,7 @@ const getConstances = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
 
     await db.connect();
 
-    const requerimients = await Requerimient.find().lean();
+    const requerimients = await Requerimient.findAll();
     const updatedRequerimients = requerimients.map(requerimient => {
         const formattedDate = format(new Date(requerimient.createdAt), 'dd/MM/yyyy');
         return {
@@ -69,12 +69,11 @@ const updateConstance = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     try {
         await db.connect();
         if (authorizedChatID == userId) {
-            const equipment = await Requerimient.findOneAndUpdate(
-                { requerimientId: id },
-                { isSigned: sign },
-                { new: true } // Esta opción devolverá el documento actualizado
-            );
-
+            await Requerimient.update( { isSigned: sign } , {
+                where: {
+                    requerimientId: id
+                }
+              });
             await db.disconnect();
             return res.status(200).json({ message: 'Requerimiento actualizado' });
         } else {
@@ -94,24 +93,11 @@ const createConstance = async (req: NextApiRequest, res: NextApiResponse<Data>) 
     const requerimient = req.body as IRequerimient;
     try {
         await db.connect();
-        const constanceInDB = await Requerimient.findOne({ requerimientId: req.body.requerimientId });
-        if (constanceInDB) {
-            await db.disconnect();
-            return res.status(400).json({ message: 'Ya existe un producto con ese equipo' });
-        }
-        requerimient.items.forEach((item, index) => {
-            item.item = index + 1; // Comenzar desde 1 en lugar de 0
-        });
-        const requerimiento = new Requerimient(req.body);
-        await requerimiento.save();
+        const requerimiento = await Requerimient.create(req.body);
         await db.disconnect();
-
         const pdfBuffer = await generatePDFrequerimient (requerimiento)
-
         await sendTelegramMessage(requerimiento,pdfBuffer);
-
         res.status(201).json(requerimiento);
-
 
     } catch (error) {
         console.log(error);

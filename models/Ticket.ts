@@ -75,15 +75,42 @@ const Ticket = sequelize.define<TicketInstance>('Ticket', {
         type: DataTypes.STRING
     },
     comments: {
-        type: DataTypes.ARRAY(DataTypes.JSONB)
-        //user: { type: String },
-        //comment: { type: String }, // Cambia el tipo del campo a String
-        //createdAt: { type: Date, default: Date.now }
+        type: DataTypes.ARRAY(DataTypes.JSONB),
+        defaultValue: [],
+        allowNull: true,
+        get() {
+            const rawValue = this.getDataValue('comments');
+            if (rawValue) {
+                return rawValue.map((comment: any) => ({
+                    user: comment.user || '',
+                    comment: comment.comment || '',
+                    createdAt: comment.createdAt || null
+                }));
+            } else {
+                return [];
+            }
+        },
+        set(value: any[]) {
+            this.setDataValue('comments', value);
+        }
     },
     diagnostic: {
-        type: DataTypes.JSONB
-        //user: { type: String, default: '' },
-        //observation: { type: String, default: '' },
+        type: DataTypes.JSONB,
+        allowNull: true,
+        get() {
+            const rawValue = this.getDataValue('diagnostic');
+            if (rawValue) {
+                return {
+                    user: rawValue.user || '',
+                    observation: rawValue.observation || ''
+                };
+            } else {
+                return null;
+            }
+        },
+        set(value: any) {
+            this.setDataValue('diagnostic', value);
+        }
     },
     isTechnician: {
         type: DataTypes.BOOLEAN

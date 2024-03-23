@@ -277,7 +277,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
             <Typography variant="subtitle2">Seguimiento:</Typography>
             <Box display="flex" flexDirection="row" gap={2}>
               <Stepper activeStep={activeStep} alternativeLabel>
-                {steps[ticketType].step.map((step) => (
+                {steps[ticketType]?.step?.map((step) => (
                   <Step key={step.label}>
                     <StepLabel>{step.label}</StepLabel>
                   </Step>

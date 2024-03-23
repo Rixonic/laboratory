@@ -123,7 +123,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
   const [updatedPriority, setUpdatedPriority] = useState(ticket.priority);
   const [updatedAssigned, setUpdatedAssigned] = useState(ticket.assignedTo);
   const [newDiagnostic, setNewDiagnostic] = useState(
-    ticket.diagnostic.observation
+    ticket.diagnostic?.observation
   );
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -501,14 +501,14 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
                   id="outlined-multiline-static"
                   disabled={
                     user?.role != "admin" ||
-                    ticket.diagnostic.observation == null
+                    ticket.diagnostic?.observation == null
                   }
                   multiline
                   rows={3}
                   value={newDiagnostic}
                   onChange={(e) => setNewDiagnostic(e.target.value)}
                 />
-                {user?.role == "admin" && !ticket.diagnostic.observation ? (
+                {user?.role == "admin" && !ticket.diagnostic?.observation ? (
                   <Button onClick={addDiagnostic}>Agregar Diagnostico</Button>
                 ) : null}
               </Box>
