@@ -10,7 +10,6 @@ export interface DashboardSummaryResponse {
     notPaidOrders:           number;
 }
 
-
 /*
 export interface DashboardSummaryResponse {
     numberOfTickets:         number;

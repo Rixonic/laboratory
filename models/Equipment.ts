@@ -73,7 +73,9 @@ import { IEquipment } from "../interfaces";
 
 const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
     host: 'localhost',
-    dialect: 'postgres'
+    dialect: 'postgres',
+    logging: false
+
   });
 
   interface EquipmentInstance extends Model<IEquipment>, IEquipment {}

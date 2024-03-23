@@ -1,73 +1,54 @@
-/* eslint-disable */
-import type { NextApiRequest, NextApiResponse } from 'next'
-import formidable from 'formidable';
-import fs from 'fs';
-
 import { v2 as cloudinary } from 'cloudinary';
-cloudinary.config( process.env.CLOUDINARY_URL || '' );
+import multer from 'multer';
 
-
-type Data = {
-    message: string
-}
+cloudinary.config(process.env.CLOUDINARY_URL || '');
 
 export const config = {
     api: {
         bodyParser: false,
+    },
+};
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+const myUploadMiddleware = upload.single("file");
+
+function runMiddleware(req, res, fn) {
+    return new Promise((resolve, reject) => {
+      fn(req, res, (result) => {
+        if (result instanceof Error) {
+          return reject(result);
+        }
+        return resolve(result);
+      });
+    });
+  }
+
+  const handleUpload = async (dataURI) => {
+    try {
+        const cloudinaryResponse = await cloudinary.uploader.upload(dataURI);
+        return {
+            
+            message: cloudinaryResponse.secure_url,
+        };
+    } catch (error) {
+        throw new Error('Error uploading file to Cloudinary: ' + error.message);
     }
-}
+};
 
-
-export default function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
-    
-    switch (req.method) {
-        case 'POST':
-            return uploadFile(req, res);
-    
-        default:
-            res.status(400).json({ message: 'Bad request' });
+  const handler = async (req, res) => {
+    try {
+      await runMiddleware(req, res, myUploadMiddleware);
+      const b64 = Buffer.from(req.file.buffer).toString("base64");
+      let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      const cldRes = await handleUpload(dataURI);
+      console.log(cldRes)
+      res.json(cldRes);
+    } catch (error) {
+      console.log(error);
+      res.send({
+        message: error.message,
+      });
     }
-
-}
-
-
-const saveFile = async( file: formidable.File ): Promise<string> => {
-
-    // const data = fs.readFileSync( file.filepath );
-    // fs.writeFileSync(`./public/${ file.originalFilename }`, data);
-    // fs.unlinkSync( file.filepath ); // elimina
-    // return;
-    const { secure_url } = await cloudinary.uploader.upload( file.filepath );
-    return secure_url;
-
-}
-
-
-const parseFiles = async(req: NextApiRequest): Promise<string> => {
-
-    return new Promise( (resolve, reject) => {
-
-        const form = new formidable.IncomingForm();
-        form.parse( req, async( err, fields, files ) => {
-            // console.log({ err, fields, files });
-
-            if ( err ) {
-                return reject(err);
-            }
-// eslint-disable-next-line
-            const filePath = await saveFile( files.file as unknown as formidable.File )
-            resolve(filePath);
-        })
-
-    }) 
-
-}
-
-
-const uploadFile = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
-    
-    const imageUrl = await parseFiles(req);
-    
-    return res.status(200).json({ message: imageUrl });
-
-}
+  };
+  export default handler;

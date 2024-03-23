@@ -21,7 +21,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Data>)
             return getEquipments( req, res );
             
         case 'PUT':
-            return updateEquipment( req, res );
+            //return updateEquipment( req, res );
 
         case 'POST':
             return createEquipment( req, res )
@@ -38,11 +38,11 @@ const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => 
 
     await db.connect();
 
-    let query = Dosimeter.find();
+    let equipments = await Dosimeter.findAll();
     
-    query = query.sort({year: -1, month: -1 });
+    //query = query.sort({year: -1, month: -1 });
 
-    const equipments = await query.lean();
+    //const equipments = await query.lean();
 
     // Verificar y formatear la fecha de perfomance
 
@@ -52,7 +52,7 @@ const getEquipments = async(req: NextApiRequest, res: NextApiResponse<Data>) => 
 
 }
 
-
+/*
 const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
     
     const { _id = '' } = req.body as IDosimeter;
@@ -60,11 +60,11 @@ const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     if ( !isValidObjectId( _id ) ) {
         return res.status(400).json({ message: 'El id del producto no es válido' });
     }
-    /*
+    
     if ( images.length < 2 ) {
         return res.status(400).json({ message: 'Es necesario al menos 2 imágenes' });
     }
-    */
+
 
     // TODO: posiblemente tendremos un localhost:3000/products/asdasd.jpg
 
@@ -94,7 +94,7 @@ const updateEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
         return res.status(400).json({ message: 'Revisar la consola del servidor' });
     }
 
-}
+}*/
 
 const createEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
     
@@ -112,19 +112,10 @@ const createEquipment = async(req: NextApiRequest, res: NextApiResponse<Data>) =
     
     try {
         await db.connect();
-        const equipmentInDB = await Dosimeter.findOne({ _id: req.body._id });
-        if ( equipmentInDB ) {
-            await db.disconnect();
-            return res.status(400).json({ message: 'Ya existe un producto con ese equipo' });
-        }
-        
-        const equipment = new Dosimeter( req.body );
+        const equipment = await Dosimeter.create(req.body);
         await equipment.save();
         await db.disconnect();
-
         res.status(201).json( equipment );
-
-
     } catch (error) {
         console.log(error);
         await db.disconnect();

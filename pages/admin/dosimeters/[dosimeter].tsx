@@ -18,7 +18,6 @@ import { Dosimeter } from '../../../models';
 
 const validLocation = ['HEMODINAMIA','IMAGENES']
 const validHeadquarter = ['CASTELAR','RAMOS MEJIA']
-const validCriticalType = ['CRITICO','NO CRITICO']
 
 const currencies = [
     {
@@ -40,8 +39,7 @@ const currencies = [
   ];
 
 interface FormData {
-    _id?        : string;
-    //id          : Number;
+    _id?        : number;
     month       : Number;
     year        : Number;
     headquarter : string;   
@@ -87,6 +85,7 @@ const DosimeterAdminPage:FC<Props> = ({ dosimeter }) => {
                 formData.append('file', file);
                 const { data } = await tesloApi.post<{ message: string}>('/admin/upload', formData);
                 setValue('document', data.message , { shouldValidate: true });
+                console.log(data)
             }
 
 

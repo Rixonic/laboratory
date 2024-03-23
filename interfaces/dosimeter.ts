@@ -1,7 +1,6 @@
 
 export interface IDosimeter {
-    _id?        : string;           //propio de la base de datos   
-    //ownId       : Number;
+    _id?        : number; 
     month       : Number;
     year        : Number;
     headquarter : string;   

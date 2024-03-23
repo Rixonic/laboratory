@@ -268,7 +268,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
                   disabled
                   multiline
                   rows={3}
-                  value={ticket.diagnostic.observation}
+                  value={ticket.diagnostic?.observation}
                 />
               </Box>
             </Box>

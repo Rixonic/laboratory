@@ -26,7 +26,7 @@ async function getTicketByTicketId(req: NextApiRequest, res: NextApiResponse<Dat
 
     await db.connect();
     const { ticketId } = req.query;
-    const ticket = await Ticket.findOne({ ticketId }).lean();
+    const ticket = await Ticket.findOne({ where: { ticketId: ticketId } });
     await db.disconnect();
 
     if( !ticket ) {

@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import { db } from '../../../database';
 import { IEquipmentService } from '../../../interfaces/equipmentsService';
 import { EquipmentService } from '../../../models';
-import { JSONParser } from 'formidable/parsers';
 
 type Data = 
 | { message: string }

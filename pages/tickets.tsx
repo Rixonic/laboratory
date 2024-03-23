@@ -134,7 +134,7 @@ const validSolicitud = [
 ];
 
 interface FormData {
-  _id?: string;
+  _id?: number;
   ticketId: string;
   images: string[];
   summary: string;
@@ -545,7 +545,7 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
                       style={{ display: "none" }}
                       onChange={onFilesSelected}
                     />
-
+                    {/*
                     <Grid container spacing={2}>
                       {getValues("images").map((img) => (
                         <Grid item xs={4} sm={3} key={img}>
@@ -567,8 +567,9 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
                             </CardActions>
                           </Card>
                         </Grid>
+                        
                       ))}
-                    </Grid>
+                    </Grid>*/}
                   </Box>
                 </>
               ) : null}

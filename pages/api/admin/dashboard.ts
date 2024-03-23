@@ -4,8 +4,8 @@ import { User, Equipment, Ticket } from '../../../models';
 
 type Data = {
     numberOfOrders: number;
-    paidOrders: number; // isPad true
-    notPaidOrders: number;
+    //paidOrders: number; // isPad true
+    //notPaidOrders: number;
     //numberOfClients: number; // role: client
     //numberOfProducts: number;
     //productsWithNoInventory: number; // 0
@@ -24,13 +24,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     // const lowInventory = await Product.find({ inStock: { $lte: 10 } }).count();
     const [
         numberOfOrders,
-        paidOrders,
+        //paidOrders,
         //numberOfClients,
         //numberOfProducts,
         //productsWithNoInventory,
         //lowInventory,
     ] = await Promise.all([
-        Ticket.countDocuments(),
+        //Ticket.countDocuments(),
         //Order.find({ isPaid: true }).count(),
         User.find({ role: 'client' }).countDocuments(),
         //Equipment.countDocuments(),
@@ -43,12 +43,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     res.status(200).json({
         numberOfOrders,
-        paidOrders,
+        //paidOrders,
         //numberOfClients,
         //numberOfProducts,
         //productsWithNoInventory,
         //lowInventory,
-        notPaidOrders: numberOfOrders - paidOrders
+        //notPaidOrders: numberOfOrders - paidOrders
     })
 
 

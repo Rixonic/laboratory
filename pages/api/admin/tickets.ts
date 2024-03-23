@@ -39,9 +39,7 @@ const getTickets = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
     
     await db.connect();
 
-    const tickets = await Ticket.find()
-        .sort({ tiquetId: 'asc' })
-        .lean();
+    const tickets = await Ticket.findAll()
 
     await db.disconnect();
 
@@ -116,7 +114,7 @@ const updateTickets = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
 
     try {
         await db.connect();
-        const ticket = await Ticket.findById(_id);
+        const ticket = await Ticket.findByPk(_id);
 
         if (!ticket) {
             await db.disconnect();
@@ -180,12 +178,7 @@ const createTickets = async(req: NextApiRequest, res: NextApiResponse<Data>) => 
     try {
         await db.connect();
         console.log(req.body.equip)
-        const ticketInDB = await Ticket.findOne({ ticketId: req.body.ticketId });
-        if ( ticketInDB ) {
-            await db.disconnect();
-            return res.status(400).json({ message: 'Ya existe un producto con ese equipo' });
-        }
-        const ticket = new Ticket(req.body);
+        const ticket = await Ticket.create(req.body);
         await ticket.save(); 
         await db.disconnect();
 

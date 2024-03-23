@@ -1,18 +1,50 @@
-import mongoose, { Schema, model, Model } from 'mongoose';
-import { IDosimeter } from '../interfaces';
+import { Sequelize, DataTypes, Model } from "sequelize";
+import { IDosimeter, IEquipment } from "../interfaces";
 
-const userSchema = new Schema({
-    //ownId       : { type: Number },
-    year        : { type: Number, required: true },
-    month       : { type: Number, required: true },
-    headquarter : { type: String, required: true },
-    service     : { type: String, required: true },
-    location     : { type: String, required: true },
-    document    : { type: String, required: true },
-}, {
-    timestamps: true,
-})
+const sequelize = new Sequelize(process.env.POSTGRE_DB, process.env.POSTGRE_USERNAME, process.env.POSTGRE_PASSWORD, {
+    host: 'localhost',
+    dialect: 'postgres',
+    logging: false
 
-const Dosimeter:Model<IDosimeter> = mongoose.models.Dosimeter || model('Dosimeter',userSchema);
+  });
 
-export default Dosimeter;
+  interface DosimeterInstance extends Model<IDosimeter>, IDosimeter {}
+
+const Dosimeter = sequelize.define<DosimeterInstance>('Dosimeter', {
+    _id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true
+    },
+    year : { 
+        type: DataTypes.INTEGER, 
+        allowNull: false 
+    },
+    month : { 
+        type: DataTypes.INTEGER, 
+        allowNull: false 
+    },
+    headquarter : { 
+        type: DataTypes.STRING, 
+        allowNull: false 
+    },
+    service : { 
+        type: DataTypes.STRING, 
+        allowNull: false  
+    },
+    location : { 
+        type: DataTypes.STRING,  
+        allowNull: false  
+    },
+    document : { 
+        type: DataTypes.STRING, 
+        allowNull: false 
+    },
+  }, {
+    tableName: 'Dosimeters'
+  });
+
+  Dosimeter.sync() 
+
+  export default Dosimeter;
