@@ -46,7 +46,7 @@ const getConstances = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
 
     await db.connect();
 
-    const requerimients = await Requerimient.findAll();
+    const requerimients = await Requerimient.findAll({raw: true});
     const updatedRequerimients = requerimients.map(requerimient => {
         const formattedDate = format(new Date(requerimient.createdAt), 'dd/MM/yyyy');
         return {

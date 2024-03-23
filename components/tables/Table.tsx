@@ -66,8 +66,8 @@ export const CustomTable: FC<Props> = ({ columns,data }) => {
                     const value = row[column.id];
                     return (
                       <TableCell key={column.id} align={column.align}>
-                        {column.format && typeof value === 'string'
-                          ? column.format(value)
+                        {column.format
+                          ? column.format(row)
                           : value}
                       </TableCell>
                     );

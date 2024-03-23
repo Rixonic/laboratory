@@ -133,7 +133,7 @@ function Row(props: { row: IRequerimient }) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {row.items.map((itemRow) => (
+                  {row.items?.map((itemRow) => (
                     <TableRow key={itemRow.item}>
                       <TableCell>{itemRow.item}</TableCell>
                       <TableCell>{itemRow.quantity}</TableCell>
