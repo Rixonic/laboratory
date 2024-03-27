@@ -10,11 +10,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Alert from "@mui/material/Alert";
 import {
-  Autocomplete,
   Box,
   Button,
   Grid,
   MenuItem,
+  Snackbar,
   Stack,
   TextField,
 } from "@mui/material";
@@ -43,6 +43,7 @@ import EmailIcon from '@mui/icons-material/Email';
 function Row(props: { row: IRequerimient }) {
   const { row } = props;
   const [open, setOpen] = React.useState(false);
+
 
   const handleDownload = async (e) => {
     try {
@@ -77,6 +78,9 @@ function Row(props: { row: IRequerimient }) {
   const handleSend = (e) => {
     console.log(e)
   };
+
+
+
 
   return (
     <React.Fragment>
@@ -182,6 +186,10 @@ interface Props {
 }
 
 const TicketsPage: FC<Props> = ({ userData }) => {
+  const [openSuccess, setOpenSuccess] = React.useState(false);
+  const [openFail, setOpenFail] = React.useState(false);
+  const [openProgress, setOpenProgress] = React.useState(false);
+  const [message, setMessage] = React.useState("");
   const [index, setIndex] = useState (1)
   const [items, setItems] = useState<IRequerimientItem[] | []>([
     {
@@ -204,7 +212,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
   const [open, setOpen] = React.useState(false);
 
   const onSubmit = async (form: FormData) => {
-    //setOpen(false);
+    setOpenProgress(true);
     form.createdBy = userData.name;
     form.items = items;
     form.isSigned = false;
@@ -216,9 +224,14 @@ const TicketsPage: FC<Props> = ({ userData }) => {
         method: "POST",
         data: form,
       });
+      console.log(data)
+      setOpenProgress(false);
+      setMessage(data.message)
+      setOpenSuccess(true)
     } catch (error) {
+      setOpenFail(true)
       console.log(error);
-      <Alert severity="error">Ups! Hubo un problema</Alert>;
+      
     }
   };
 
@@ -272,6 +285,11 @@ const TicketsPage: FC<Props> = ({ userData }) => {
     setItems(deleteVal);
   };
 
+  const handleCloseAlert = (e) => {
+    setOpenFail(false)
+    setOpenSuccess(false)
+  };
+
   useEffect(() => {
     getRequerimients();
   }, []);
@@ -284,7 +302,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
           color="secondary"
           onClick={handleClickOpen}
         >
-          Crear constancia
+          Nuevo requerimiento
         </Button>
       </Box>
 
@@ -314,20 +332,13 @@ const TicketsPage: FC<Props> = ({ userData }) => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth={false}>
-        <DialogTitle>Nueva constancia </DialogTitle>
+        <DialogTitle>Nuevo requerimiento </DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-              label="Requerimiento N"
-              defaultValue=""
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              {...register("requerimientId")}
-            />
-            <Grid container spacing={1} minWidth={"50%"}>
+            <Grid container spacing={1} minWidth={"50%"} paddingTop={2}>
               <Grid item xs={6}>
                 <TextField
+                  required
                   select
                   label="Urgencia"
                   defaultValue=""
@@ -341,6 +352,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
                   <MenuItem value={"B"}> BAJO </MenuItem>
                 </TextField>
                 <TextField
+                  required
                   select
                   label="Fecha de entrega requerida"
                   defaultValue=""
@@ -359,6 +371,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
               <Grid item xs={6}>
                 <TextField
                   select
+                  required
                   label="Destino"
                   defaultValue=""
                   variant="outlined"
@@ -375,6 +388,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
 
                 <TextField
                   label="Entregar a:"
+                  required
                   defaultValue=""
                   variant="outlined"
                   sx={{ mb: 1 }}
@@ -395,6 +409,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
               >
                 <TextField
                   label="Cant."
+                  required
                   type="number"
                   variant="outlined"
                   name="quantity"
@@ -404,7 +419,8 @@ const TicketsPage: FC<Props> = ({ userData }) => {
                   sx={{ width: 120 }}
                 />
                 <TextField
-                  label="Tipo"
+                  required
+                  label="Unidad"
                   variant="outlined"
                   name="type"
                   value={val.type}
@@ -413,6 +429,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
                   sx={{ width: 180 }}
                 />
                 <TextField
+                required
                   label="Descripcion"
                   variant="outlined"
                   name="description"
@@ -450,7 +467,7 @@ const TicketsPage: FC<Props> = ({ userData }) => {
                 </IconButton>
               </Stack>
             ))}
-            <Button onClick={handleClickAdd}>Agregar item</Button>
+            <Button sx={{ display: 'block', margin: '0 auto', marginTop: 2,marginBottom: 2}} onClick={handleClickAdd}>Agregar item</Button>
             <TextField
               label="Comentario"
               defaultValue=""
@@ -469,6 +486,34 @@ const TicketsPage: FC<Props> = ({ userData }) => {
           <Button onClick={handleClose}>Cancelar</Button>
         </DialogActions>
       </Dialog>
+
+
+      <Snackbar open={openSuccess} autoHideDuration={3000} onClose={handleCloseAlert} anchorOrigin =  { { vertical: 'top', horizontal: 'center' } }>
+          <Alert
+            onClose={handleCloseAlert}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            {message}
+          </Alert>
+        </Snackbar>
+        <Snackbar open={openFail} autoHideDuration={3000} onClose={handleCloseAlert} anchorOrigin =  { { vertical: 'top', horizontal: 'center' } }>
+          <Alert
+            onClose={handleCloseAlert}
+            severity="error"
+            sx={{ width: "100%" }}
+          >
+            {message}
+          </Alert>
+        </Snackbar>
+        <Snackbar open={openProgress}  anchorOrigin =  { { vertical: 'top', horizontal: 'center' } }>
+          <Alert
+            severity="info"
+            sx={{ width: "100%" }}
+          >
+            Procesando solicitud
+          </Alert>
+        </Snackbar>
     </AdminLayout>
   );
 };

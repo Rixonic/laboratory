@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { format } from 'date-fns';
 import { v2 as cloudinary } from 'cloudinary';
 cloudinary.config(process.env.CLOUDINARY_URL || '');
-
 import { db } from '../../../database';
 import { Requerimient } from '../../../models'
 import { IRequerimient } from '../../../interfaces';
@@ -93,11 +92,16 @@ const createConstance = async (req: NextApiRequest, res: NextApiResponse<Data>) 
     const requerimient = req.body as IRequerimient;
     try {
         await db.connect();
+        const total = await Requerimient.count();
+        const newTicketNumber = (total + 1).toString().padStart(4, "0");
+        const newTicketId = `24-${newTicketNumber}`;
+        req.body.requerimientId = newTicketId
+
         const requerimiento = await Requerimient.create(req.body);
         await db.disconnect();
         const pdfBuffer = await generatePDFrequerimient (requerimiento)
         await sendTelegramMessage(requerimiento,pdfBuffer);
-        res.status(201).json(requerimiento);
+        res.status(201).json({message:`Requerimiento ${newTicketId} creado exitosamente`});
 
     } catch (error) {
         console.log(error);

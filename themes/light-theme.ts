@@ -56,10 +56,11 @@ export const lightTheme = createTheme({
         variant: 'contained',
         size: 'small',
         disableElevation: true,
-        color: 'info'
+        color: 'secondary'
       },
       styleOverrides: {
         root: {
+          borderColor: "red",
           textTransform: 'none',
           boxShadow: 'none',
           borderRadius: 10,

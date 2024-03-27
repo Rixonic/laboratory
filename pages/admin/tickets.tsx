@@ -78,7 +78,7 @@ const validSolicitud = [
 
 
 interface FormData {
-  _id?: string;
+  _id?: number;
   ticketId: string;
   images: string[];
   summary: string;
