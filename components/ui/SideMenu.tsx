@@ -11,7 +11,7 @@ export const SideMenu = () => {
     const router = useRouter();
     const { isMenuOpen, toggleSideMenu } = useContext(UiContext);
     const { user, isLoggedIn, logout } = useContext(AuthContext);
-    console.log(user)
+    //console.log(user)
     const navigateTo = (url: string) => {
         toggleSideMenu();
         router.push(url);

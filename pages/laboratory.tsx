@@ -215,7 +215,7 @@ const LaboratorySensor = ({ db }) => {
       webSocket.onmessage = (event) => {
         const receivedData = JSON.parse(event.data);
         setData(receivedData);
-        //console.log(receivedData);
+        console.log(receivedData);
       };
 
       webSocket.onclose = () => {
