@@ -159,7 +159,7 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
       format: (row: ITicket) => (
         <Stack direction="row">
           {userData.role.toLocaleUpperCase() === "ADMIN" &&       
-        <IconButton href={`/admin/tickets/${row.ticketId}`}>
+        <IconButton href={`/admin/ticket/${row.ticketId}`}>
           <EditIcon />
         </IconButton>}
         <IconButton href={`/ticket/${row.ticketId}`}>

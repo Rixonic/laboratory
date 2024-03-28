@@ -1,13 +1,15 @@
-import React from 'react'
+import React, { FC } from 'react'
 import DownloadIcon from '@mui/icons-material/Download';
 import { AdminLayout } from '../components/layouts'
 import IconButton from '@mui/material/IconButton';
-import { CategoryOutlined } from '@mui/icons-material';
+import { AddOutlined, CategoryOutlined } from '@mui/icons-material';
 import { GetServerSideProps } from 'next';
 import { getSession } from 'next-auth/react';
 import { getUserData } from '../database/dbUsers';
 import { getDosimeterByLocation } from '../database/dbDosimeters';
-import { Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TablePagination } from '@mui/material';
+import { Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, TablePagination, Button } from '@mui/material';
+import { userAgent } from 'next/server';
+import { IDosimeter, IUser } from '../interfaces';
 
 interface Column {
   id: string;
@@ -17,8 +19,17 @@ interface Column {
   format?: (value: string) => React.JSX.Element;
 }
 
-const EquipmentsPage = (props) => {
-  const dosimeters = props.dosimeter
+interface Props {
+  dosimeters: IDosimeter[];
+  userData: IUser;
+  
+}
+
+
+const EquipmentsPage : FC<Props> = ({ dosimeters,userData }) => {
+  //const dosimeters = props.dosimeter
+  //const user = props.userData
+  //console.log(userData)
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const onDownloadImage = (image: string) => {
@@ -84,7 +95,7 @@ const EquipmentsPage = (props) => {
     >
       <Paper sx={{ width: '100%' }} >
         <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
+          <Table aria-label="sticky table">
             <TableHead>
               <TableRow>
                 <TableCell align="center" colSpan={2}>
@@ -114,7 +125,7 @@ const EquipmentsPage = (props) => {
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((row) => {
                   return (
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
+                    <TableRow hover role="checkbox" tabIndex={-1} key={row._id}>
                       {columns.map((column) => {
                         const value = row[column.id];
                         return (
@@ -143,6 +154,14 @@ const EquipmentsPage = (props) => {
           labelDisplayedRows={({ from, to, count }) => `Mostrando items del ${from}al ${to} de ${count} items`}
         />
       </Paper>
+
+      {userData.role.toUpperCase() == "ADMIN" &&      <Button
+          startIcon={<AddOutlined />}
+          color="secondary"
+          href="/admin/dosimeters/new"
+        >
+          Agregar
+        </Button>}
     </AdminLayout>
   )
 }
@@ -154,11 +173,12 @@ export const getServerSideProps: GetServerSideProps = async ({
 
   const session = await getSession({ req });
   const userData = await getUserData(session.user.email);
-  const dosimeter = await getDosimeterByLocation(userData.locations);
+  const dosimeters = await getDosimeterByLocation(userData.locations);
   delete userData._id;
   return {
     props: {
-      dosimeter
+      dosimeters,
+      userData
     },
   };
 };
