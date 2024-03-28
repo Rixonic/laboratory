@@ -31,7 +31,6 @@ import { AddOutlined } from "@mui/icons-material";
 import { AdminLayout } from "../../components/layouts";
 import { IConstanceService, ITicket, IUser } from "../../interfaces";
 import { getUserData } from '../../database/dbUsers';
-import dosimeters from './dosimeters';
 
 interface FormData {
     _id?: string;
