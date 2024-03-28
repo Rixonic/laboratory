@@ -115,7 +115,7 @@ const updateTickets = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
     try {
         await db.connect();
         const ticket = await Ticket.findByPk(_id);
-
+        console.log(ticket)
         if (!ticket) {
             await db.disconnect();
             return res.status(400).json({ message: 'No existe un ticket con ese ID' });
@@ -147,7 +147,7 @@ const updateTickets = async (req: NextApiRequest, res: NextApiResponse<Data>) =>
             ticket.finishAt = req.body.finishAt; 
         }
         if(req.body.diagnostic ){
-            //console.log(req.body.priority)
+            //console.log(req.body.diagnostic)
             ticket.diagnostic.user = req.body.diagnostic.user;
             ticket.diagnostic.observation = req.body.diagnostic.observation; 
         }

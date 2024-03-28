@@ -17,6 +17,8 @@ import {
   useRef,
   useState,
 } from "react";
+
+import EditIcon from "@mui/icons-material/Edit";
 import { tesloApi } from "../api";
 import { format } from "date-fns";
 import * as React from "react";
@@ -34,9 +36,6 @@ import {
   Button,
   Stack,
   Chip,
-  Card,
-  CardActions,
-  CardMedia,
   FormLabel,
   Grid,
   TextField,
@@ -56,6 +55,7 @@ import { AdminLayout } from "../components/layouts";
 import { ITicket, IUser } from "../interfaces";
 import { getUserData } from "../database/dbUsers";
 import { getTicketsByLocation } from "../database/dbTickets";
+import { DialogAlert } from "../components/ui";
 
 interface Column {
   id: string;
@@ -65,41 +65,7 @@ interface Column {
   format?: (row: any) => React.JSX.Element;
 }  
 
-const columns: Column[] = [
-  { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
-  {
-    id: 'createdAt',
-    label: 'Creado: ',
-    minWidth: 70,
-    align: 'center',
-    format: (row: ITicket) => (<>{format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}</>)
-    ,
-  },
-  { id: 'user', label: 'Solicitante', minWidth: 100 },
-  { id: 'summary', label: 'Descripcion', minWidth: 100 },
-  {
-    id: 'status',
-    label: 'Estado',
-    minWidth: 70,
-    align: 'center',
-    format: (row: ITicket) => (<Chip label={row.status} color={row.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />)
-    ,
-  },
-  { id: 'location', label: 'Servicio', minWidth: 100 },
-  {
-    id: 'actions',
-    label: 'Acciones',
-    minWidth: 70,
-    align: 'center',
-    format: (row: ITicket) => (
-      <Stack direction="row">
-      <IconButton href={`/ticket/${row.ticketId}`}>
-        <VisibilityIcon />
-      </IconButton>
-    </Stack>
-    ),
-  },
-];
+
 
 
 const steps = [
@@ -160,6 +126,49 @@ interface Props {
 
 
 const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
+  const [type, setType] = React.useState<"PROGRESS" | "SUCCESS" | "FAIL"|null>(null);
+  const [openAlert, setOpenAlert] = React.useState(false);
+  const [message, setMessage] = React.useState("");
+
+  const columns: Column[] = [
+    { id: 'ticketId', label: 'Ticket ID', minWidth: 170 },
+    {
+      id: 'createdAt',
+      label: 'Creado: ',
+      minWidth: 70,
+      align: 'center',
+      format: (row: ITicket) => (<>{format(new Date(row.createdAt), "dd/MM/yyyy HH:mm")}</>)
+      ,
+    },
+    { id: 'user', label: 'Solicitante', minWidth: 100 },
+    { id: 'summary', label: 'Descripcion', minWidth: 100 },
+    {
+      id: 'status',
+      label: 'Estado',
+      minWidth: 70,
+      align: 'center',
+      format: (row: ITicket) => (<Chip label={row.status} color={row.status.toUpperCase()=="FINALIZADO"?"success":"warning"} variant="filled" />)
+      ,
+    },
+    { id: 'location', label: 'Servicio', minWidth: 100 },
+    {
+      id: 'actions',
+      label: 'Acciones',
+      minWidth: 70,
+      align: 'center',
+      format: (row: ITicket) => (
+        <Stack direction="row">
+          {userData.role.toLocaleUpperCase() === "ADMIN" &&       
+        <IconButton href={`/admin/tickets/${row.ticketId}`}>
+          <EditIcon />
+        </IconButton>}
+        <IconButton href={`/ticket/${row.ticketId}`}>
+          <VisibilityIcon />
+        </IconButton>
+      </Stack>
+      ),
+    },
+  ];
 
   const allTickets: ITicket[] = JSON.parse(filteredTicketJSON);
   const {
@@ -284,6 +293,8 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
   const onSubmit = async (form: FormData) => {
     setIsSaving(true);
     setOpen(false);
+    setOpenAlert(true)
+    setType("PROGRESS")
     setActiveStep(0);
     try {
       const { data } = await tesloApi({
@@ -300,10 +311,13 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
           },
         });
       }
+      setType("SUCCESS")
+
 
       window.location.reload();
     } catch (error) {
       console.log(error);
+      setType("FAIL")
       setIsSaving(false);
       <Alert severity="error">Ups! Hubo un problema</Alert>;
     }
@@ -609,6 +623,9 @@ const TicketsPage: FC<Props> = ({ ticket, userData, filteredTicketJSON }) => {
           </DialogContentText>
         </DialogContent>
       </Dialog>
+
+      <DialogAlert message={message} type={type} open={openAlert} />
+
     </AdminLayout>
   );
 };

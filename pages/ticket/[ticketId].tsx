@@ -505,6 +505,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
 
 export const getServerSideProps: GetServerSideProps = async ({query,req}) => {
   let ticketId = query.ticketId;
+  console.log(query)
 
   if (Array.isArray(ticketId)) {
     ticketId = ticketId[0];

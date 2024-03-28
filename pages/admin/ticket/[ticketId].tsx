@@ -137,7 +137,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
   const [openSuccess, setOpenSuccess] = React.useState(false);
   const [openDanger, setOpenDanger] = React.useState(false);
 
-    console.log(ticket)
+  //  console.log(ticket)
 
   const handleClickSuccess = () => {
     setOpenSuccess(true);
@@ -319,6 +319,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
 
   const addDiagnostic = async () => {
     // Realiza una solicitud PUT al servidor para actualizar la prioridad del ticket
+    console.log(user.name)
     try {
       setIsSaving(true);
 
@@ -500,7 +501,7 @@ const TicketPage: NextPage<Props> = ({ ticket, user }) => {
                 <TextField
                   id="outlined-multiline-static"
                   disabled={
-                    user?.role != "admin" ||
+                    user?.role != "admin" &&
                     ticket.diagnostic?.observation == null
                   }
                   multiline
@@ -796,6 +797,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   req,
 }) => {
   let ticketId = query.ticketId;
+  console.log(ticketId)
 
   if (Array.isArray(ticketId)) {
     ticketId = ticketId[0];
