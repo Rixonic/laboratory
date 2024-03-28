@@ -45,10 +45,11 @@ export const getAllTicketEquipId = async (): Promise<TicketTicketId[]> => {
 
     return ticketId;
 }
-/*
+
 export const getTicketsByEquipmentId = async (equip: string): Promise<ITicket[]> => {
     await db.connect();
-    const tickets = await Ticket.findOne({ where: { equipId: equip } })
+    const tickets = await Ticket.findAll({ where: { equipId: equip } })
+
     await db.disconnect();
 
     const updatedTickets = tickets.map((ticket) => {
@@ -60,7 +61,7 @@ export const getTicketsByEquipmentId = async (equip: string): Promise<ITicket[]>
 
     return JSON.parse(JSON.stringify(updatedTickets));
 }
-*/
+
 export const getTicketsByLocation = async (locations: string[]): Promise<ITicket[]> => {
     const lowerCaseLocations = locations.map(location => location.toUpperCase());
     await db.connect();

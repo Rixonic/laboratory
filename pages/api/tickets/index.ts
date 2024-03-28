@@ -31,9 +31,7 @@ const getTickets = async(req: NextApiRequest, res: NextApiResponse<Data>) => {
     }
 
     await db.connect();
-    const tickets = await Ticket.find(condition)
-                                .select('title images price inStock slug -_id')
-                                .lean();
+    const tickets = await Ticket.findAll()
 
     await db.disconnect();
 
