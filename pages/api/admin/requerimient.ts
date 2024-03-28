@@ -195,8 +195,8 @@ async function generatePDFrequerimient(requerimiento: IRequerimient) {
         const page = await browser.newPage();
         
         // Convertir las imágenes a base64
-        const firmaBase64 = imageToBase64(`C:\\signature\\firmaFC.png`);
-        const firmaJPBase64 = imageToBase64(`C:\\signature\\firmaJP.png`);
+        const firmaBase64 = imageToBase64(`\\var\\www\\sjd-sql\\utils\\signature\\firma${requerimient.createdBy}.png`);
+        const firmaJPBase64 = imageToBase64(`\\var\\www\\sjd-sql\\utils\\signature\\firmaJuan Pablo.png`);
 
         // Reemplazar las rutas de las imágenes con las bases64 en la plantilla HTML
         let htmlWithBase64Images = replacedHtml.replace('./firma.png', `data:image/png;base64,${firmaBase64}`)
