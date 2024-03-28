@@ -22,7 +22,7 @@ const query = `
 WITH RECURSIVE EquipmentHierarchy AS (
     -- Ancla: Selecciona los equipos que no tienen padre
     SELECT 
-      "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "duePerfomance", "electricalSecurity", "dueElectricalSecurity", "parentId", "createdAt", "updatedAt"
+      "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "electricalSecurity", "parentId", "createdAt", "updatedAt"
     FROM 
       "Equipments" 
     WHERE 
@@ -32,7 +32,7 @@ WITH RECURSIVE EquipmentHierarchy AS (
   
     -- Paso recursivo: Selecciona los equipos que tienen como padre a los equipos encontrados en el paso anterior
     SELECT 
-      e."_id", e."equip", e."equipId", e."model", e."brand", e."sector", e."location", e."headquarter", e."images", e."ecri", e."serialNumber", e."criticalType", e."perfomance", e."duePerfomance", e."electricalSecurity", e."dueElectricalSecurity", e."parentId", e."createdAt", e."updatedAt"
+      e."_id", e."equip", e."equipId", e."model", e."brand", e."sector", e."location", e."headquarter", e."images", e."ecri", e."serialNumber", e."criticalType", e."perfomance",  e."electricalSecurity",  e."parentId", e."createdAt", e."updatedAt"
     FROM 
       "Equipments" AS e
     INNER JOIN 
@@ -41,7 +41,7 @@ WITH RECURSIVE EquipmentHierarchy AS (
   
   -- Seleccionar todos los equipos y sus respectivos padres
   SELECT 
-    "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "duePerfomance", "electricalSecurity", "dueElectricalSecurity", "parentId", "createdAt", "updatedAt"
+    "_id", "equip", "equipId", "model", "brand", "sector", "location", "headquarter", "images", "ecri", "serialNumber", "criticalType", "perfomance", "electricalSecurity", "parentId", "createdAt", "updatedAt"
   FROM 
     EquipmentHierarchy;
 `;

@@ -7,6 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import IconButton from '@mui/material/IconButton';
 import axios from 'axios';
+import { format } from 'date-fns';
 
 const rowWidth = [10, 100, 100, 100, 100, 100, 100]
 
@@ -15,7 +16,8 @@ const currentDate = new Date();
 const Row = ({ row }) => {
   const [open, setOpen] = useState(false);
 
-  const dueDateElectricalSecurity = new Date(row.dueElectricalSecurity);
+  const dueDateElectricalSecurity = new Date(row.electricalSecurity);
+  dueDateElectricalSecurity.setFullYear(dueDateElectricalSecurity.getFullYear() + 1);
   const daysDifferenceElectricalSecurity = Math.floor(
     (dueDateElectricalSecurity.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -28,7 +30,8 @@ const Row = ({ row }) => {
     classNameElectricalSecurity = 'success';
   }
 
-  const dueDatePerfomance = new Date(row.duePerfomance);
+  const dueDatePerfomance = new Date(row.perfomance);
+  dueDatePerfomance.setFullYear(dueDatePerfomance.getFullYear() + 1);
   const daysDifferencePerfomance = Math.floor(
     (dueDatePerfomance.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -65,10 +68,10 @@ const Row = ({ row }) => {
         <TableCell width={rowWidth[4]} align="center">{row.brand}</TableCell>
         <TableCell width={rowWidth[5]} align="center">{row.serialNumber}</TableCell>
         <TableCell width={rowWidth[5]} align="center">{row.sector}</TableCell>
-        <TableCell width={rowWidth[3]} align="center">{row.perfomance}</TableCell>
-        <TableCell width={rowWidth[4]} align="center">{row.duePerfomance && <Chip label={row.duePerfomance} color={classNamePerformance} />}</TableCell>
-        <TableCell width={rowWidth[5]} align="center">{row.electricalSecurity}</TableCell>
-        <TableCell width={rowWidth[5]} align="center">{row.dueElectricalSecurity && <Chip label={row.dueElectricalSecurity} color={classNameElectricalSecurity} />}</TableCell>
+        <TableCell width={rowWidth[3]} align="center">{row.perfomance && format(new Date(row.perfomance), "dd/MM/yyyy")}</TableCell>
+        <TableCell width={rowWidth[4]} align="center">{row.perfomance && <Chip label={format(new Date(dueDatePerfomance), "dd/MM/yyyy")} color={classNamePerformance} />}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.electricalSecurity && format(new Date(row.electricalSecurity), "dd/MM/yyyy")}</TableCell>
+        <TableCell width={rowWidth[5]} align="center">{row.electricalSecurity && <Chip label={format(new Date(dueDateElectricalSecurity), "dd-MM-yyyy")} color={classNameElectricalSecurity} />}</TableCell>
         <TableCell width={rowWidth[6]} align="center">
           <Stack direction="row">
             <IconButton href={`/admin/equipments/${row.equipId}`}><EditIcon /></IconButton>
@@ -146,7 +149,7 @@ const EquipmentsPage = () => {
           </TableHead>
           <TableBody>
               {data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-              <Row key={row.name} row={row} />
+              <Row key={row._id} row={row} />
             ))}
           </TableBody>
         </Table>

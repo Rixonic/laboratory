@@ -14,9 +14,7 @@ export interface IEquipment {
     associatedEquip?        :IEquipment[];
     
     perfomance              : Date;
-    duePerfomance           : Date;
     electricalSecurity      : Date;
-    dueElectricalSecurity   : Date;
     
     parentId                : number;
     // TODO: agregar createdAt y updatedAt
