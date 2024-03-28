@@ -11,6 +11,7 @@ export const SideMenu = () => {
     const router = useRouter();
     const { isMenuOpen, toggleSideMenu } = useContext(UiContext);
     const { user, isLoggedIn, logout } = useContext(AuthContext);
+    console.log(user)
     const navigateTo = (url: string) => {
         toggleSideMenu();
         router.push(url);
@@ -112,7 +113,7 @@ export const SideMenu = () => {
                     }
                     {/* Admin */}
                     {
-                        user?.locations?.includes("ingenieria") && (
+                        user?.locations?.includes("INGENIERIA") && (
                             <>
                                 <Divider variant="middle" />
                                 <ListSubheader>Gestion tecnica</ListSubheader>
@@ -158,7 +159,7 @@ export const SideMenu = () => {
 
                     }
                     {
-                        user?.locations?.includes("laboratorio") && (
+                        (user?.locations?.includes("LABORATORIO") || user?.locations?.includes("INGENIERIA")) && (
                             <>
                                 <Divider variant="middle" />
                                 <ListSubheader>BMS</ListSubheader>
@@ -170,6 +171,16 @@ export const SideMenu = () => {
                                     </ListItemIcon>
                                     <ListItemText primary={'Laboratorio'} />
                                 </ListItem>
+                                {user?.locations?.includes("INGENIERIA") && 
+                                <ListItem
+                                    button
+                                    onClick={() => navigateTo('/plc_transfer')}>
+                                    <ListItemIcon>
+                                        <ThermostatIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary={'PLC Transferencia'} />
+                                </ListItem>
+                                }
                             </>
                         ) 
                     }
