@@ -34,7 +34,7 @@ const PlcTransfer = ({  }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://10.0.2.57:4000/alarms');
+        const response = await axios.get('http://10.0.0.124:4000/alarms');
         setData(response.data);
         console.log(response.data)
       } catch (err) {

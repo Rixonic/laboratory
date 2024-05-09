@@ -107,6 +107,7 @@ const LaboratorySensor = ({ db }) => {
   });
   const [dateStart, setDateStart] = React.useState<Date | null>(null);
   const [dateEnd, setDateEnd] = React.useState<Date | null>(null);
+  const [selectedSensorId, setSelectedSensorId] = React.useState<String | null>(null);
   const [filteredHistoryData, setFilteredHistoryData] = useState({
     sensorId: "",
     temp: [],
@@ -115,23 +116,36 @@ const LaboratorySensor = ({ db }) => {
 
   const handleClickOpen = async (sensorId) => {
     setOpen(true);
+    setSelectedSensorId(sensorId)
+  };
+
+  const handleClickSearch = async () => {
     try {
       const response = await axios.get(
-        `http://10.0.2.57:4000/temperatura/${sensorId}`
+        `http://10.0.0.124:4000/temperatura/${selectedSensorId}`,
+        {
+          params: {
+            sensorId: selectedSensorId,
+            startDate: dateStart.toISOString(),
+            endDate: dateEnd.toISOString(),
+          },
+        }
       );
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
       //console.log(temperaturaData);
       setHistoryData(temperaturaData); // Actualiza el estado con los datos nuevos
-      setDateStart(new Date(temperaturaData.timestamp[0]));
-      setDateEnd(
-        new Date(
-          temperaturaData.timestamp[temperaturaData.timestamp.length - 1]
-        )
-      );
+      //setDateStart(new Date(temperaturaData.timestamp[0]));
+      //setDateEnd(
+      //  new Date(
+      //    temperaturaData.timestamp[temperaturaData.timestamp.length - 1]
+      //  )
+      //);
     } catch (error) {
       console.error("Error al obtener datos de temperatura:", error);
     }
   };
+
+
 
   const handleClose = () => {
     setHistoryData({ sensorId: "", temp: [], timestamp: [] });
@@ -159,7 +173,7 @@ const LaboratorySensor = ({ db }) => {
       high: newHigh
     };
     
-    await axios.post('http://10.0.2.57:1880/setLimitHigh', requestBody)
+    await axios.post('http://10.0.0.124:1880/setLimitHigh', requestBody)
       .then(response => {
         alert(response.data);
       })
@@ -175,7 +189,7 @@ const LaboratorySensor = ({ db }) => {
     };
     
     // Realiza la solicitud POST con Axios
-    await axios.post('http://10.0.2.57:1880/setLimitLow', requestBody)
+    await axios.post('http://10.0.0.124:1880/setLimitLow', requestBody)
       .then(response => {
         alert(response.data);
       })
@@ -191,7 +205,7 @@ const LaboratorySensor = ({ db }) => {
     };
     
     // Realiza la solicitud POST con Axios
-    await axios.post('http://10.0.2.57:1880/setTime', requestBody)
+    await axios.post('http://10.0.0.124:1880/setTime', requestBody)
       .then(response => {
         // Maneja la respuesta del servidor
         alert(response.data);
@@ -203,10 +217,10 @@ const LaboratorySensor = ({ db }) => {
   };
 
   useEffect(() => {
-    let webSocket = new WebSocket("ws://10.0.2.57:1880/laboratorio");
+    let webSocket = new WebSocket("ws://10.0.0.124:1880/laboratorio");
 
     const connectWebSocket = () => {
-      webSocket = new WebSocket("ws://10.0.2.57:1880/laboratorio");
+      webSocket = new WebSocket("ws://10.0.0.124:1880/laboratorio");
 
       webSocket.onopen = () => {
         //console.log("WebSocket connection opened");
@@ -215,7 +229,6 @@ const LaboratorySensor = ({ db }) => {
       webSocket.onmessage = (event) => {
         const receivedData = JSON.parse(event.data);
         setData(receivedData);
-        console.log(receivedData);
       };
 
       webSocket.onclose = () => {
@@ -232,9 +245,11 @@ const LaboratorySensor = ({ db }) => {
     };
   }, []); // Empty dependency array ensures that this effect runs once on component mount
 
+  
+
   const fetchTemperaturaData = async () => {
     try {
-      const response = await axios.get("http://10.0.2.57:4000/temperatura");
+      const response = await axios.get("http://10.0.0.124:4000/temperatura");
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
       //console.log(temperaturaData)
       setChart(temperaturaData); // Actualiza el estado con los datos nuevos
@@ -443,7 +458,7 @@ const LaboratorySensor = ({ db }) => {
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DateTimePicker
                 label="Start"
-                minDate={new Date(historyData?.timestamp[0])}
+                //minDate={new Date(historyData?.timestamp[0])}
                 maxDate={dateEnd}
                 defaultValue={new Date(historyData?.timestamp[0])}
                 value={dateStart}
@@ -466,7 +481,9 @@ const LaboratorySensor = ({ db }) => {
                 ampm={false}
                 format="dd/MM/yyyy HH:mm"
               />
+              <Button onClick={handleClickSearch}>Cerrar</Button>
             </LocalizationProvider>
+            
           )}
 
           {historyData?.timestamp && filteredHistoryData?.timestamp && (
@@ -671,7 +688,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
   req,
 }) => {
-  const response = await axios.get("http://10.0.2.57:4000/temperatura");
+  const response = await axios.get("http://10.0.0.124:4000/temperatura");
   const db = response.data; // Ajusta según la estructura de datos recibida
 
   return {

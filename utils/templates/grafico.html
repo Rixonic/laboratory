@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gráfico de Temperatura</title>
+  <!-- Incluye Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <canvas id="temperatureChart" width="800" height="400"></canvas>
+
+  <script>
+    // Datos de ejemplo: tiempo y temperatura
+    const tiempo = ['01/05/2024 12:00:00', '01/05/2024 13:00:00', '01/05/2024 14:00:00', '01/05/2024 15:00:00'];
+    const temperatura = [20, 22, 25, 23];
+
+    // Configura el gráfico
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
+    const temperatureChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: tiempo,
+        datasets: [{
+          label: 'Temperatura',
+          data: temperatura,
+          borderColor: 'rgb(75, 192, 192)',
+          borderWidth: 2,
+          fill: false
+        }]
+      },
+      options: {
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              parser: 'DD/MM/YYYY HH:mm:ss',
+              tooltipFormat: 'll HH:mm'
+            },
+            title: {
+              display: true,
+              text: 'Tiempo'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Temperatura (°C)'
+            }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
