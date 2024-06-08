@@ -387,3 +387,182 @@ export const bodyItems = `
 <td colspan="1" ><h1> {{reason}} </h1></td>
 </tr>
 `
+
+export const templateTemp = `
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gráfico de Temperatura</title>
+  <!-- Incluye Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <style>
+    * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        font-family: Calibri;
+        font-size: 10pt;
+        box-sizing: border-box;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 29.7cm;
+      height: 21cm;
+      margin: 0;
+    }
+
+    .textContainer {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 8pt;
+        font-weight: bold;
+        text-align: center;
+    }
+    th {
+      font-weight: normal;
+    }
+
+    span {
+      font-size: large;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body >
+  <table border="1" style="width: 100%;height: 100%; margin: auto; ">
+    <thead>
+      <tr style="height: 10px;">
+        <th rowspan="7" style="width: 120px;"><img src="./LogoSJD-Granada.png" width="60%" />
+          <p style="font-weight: bold;">CASA HOSPITAL</p>
+          <p style="font-weight: bold;">San Juan de Dios</p>
+        </th>
+        <th rowspan="3" style="font-weight: bolder; font-size: larger;">LABORATORIO CLINICO</th>
+        <th style="width: 120px;">Codigo:</th>
+        <th style="width: 125px;">LC-R-03</th>
+      </tr>
+      <tr style="height: 10px;">
+        <th >Version:</th>
+        <th >3</th>
+      </tr>
+      <tr style="height: 10px;">
+        <th >Fecha de aprobacion:</th>
+        <th >1/7/2015</th>
+      </tr>
+      <tr style="height: 10px;">
+        <th rowspan="4" style="font-weight: bold; font-size: x-large;">CONTROL DE TEMPERATURA DE HELADERAS</th>
+        <th >Elaboro:</th>
+        <th ></th>
+      </tr>
+      <tr style="height: 10px;">
+        <th >Reviso:</th>
+        <th >Gestion de Calidad</th>
+      </tr>
+      <tr style="height: 10px;">
+        <th >Aprobo:</th>
+        <th >Jefe de Laboratorio</th>
+      </tr>
+      <tr style="height: 10px;">
+        <th colspan="2">Pagina 1 de 1</th>
+      </tr>
+      <tr style="height: 40px;">
+        <th colspan="4" style="width: 100px;">
+          <div style="display: flex;justify-content: space-between; padding-left: 40px;padding-right: 80px;align-items: center;">
+            <h1>MES: <span>MARZO</span></h1>
+            <h1>AÑO: <span>2024</span></h1>
+            <h1>HELADERA: <span>Stock Reactivos Autoanalizador</span></h1>
+            <h1>CODIGO: <span>A_5_11</span></h1>
+            <h1>TOLERANCIA: +/- 1 °C</h1>
+          </div>
+        
+        </th>
+    
+      </tr>
+    </thead>
+    <tbody>
+      <tr >
+        <th colspan="4" style="padding: 20px;" ><canvas id="temperatureChart"></canvas></th>
+      </tr>
+    </tbody>
+  </table>
+
+
+  
+  <script>
+    // Datos de ejemplo: tiempo y temperatura
+    const tiempo = {{time}};
+    const temperatura = {{temp}};
+
+    // Configura el gráfico
+    const ctx = document.getElementById('temperatureChart').getContext('2d');
+    const temperatureChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: tiempo,
+        datasets: [{
+          label: 'Temperatura',
+          data: temperatura,
+          borderColor: 'rgb(1, 80, 192)',
+          borderWidth: 1,
+          fill: false,
+          pointRadius: 0 // Elimina los puntos
+        }]
+      },
+      options: {
+        plugins: {
+            legend: {
+              display: false
+            }
+          },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              parser: 'dd/MM/yyyy HH:mm:ss',
+              tooltipFormat: 'dd/MM/yyyy HH:mm',
+              unit: 'hour',
+              displayFormats: {
+                hour: 'dd/MM/yyyy'
+              }
+            },
+            title: {
+              display: true,
+              text: 'Tiempo'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Temperatura (°C)'
+            }
+          }
+        }
+      }
+    });
+
+    // Emitir un evento personalizado cuando el gráfico se haya renderizado
+    const temperatureChartCanvas = document.getElementById('temperatureChart');
+    temperatureChartCanvas.addEventListener('rendered', () => {
+        window.rendered = true;
+    });
+  </script>
+</body>
+</html>
+`
