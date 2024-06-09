@@ -35,10 +35,11 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import { format } from "date-fns";
+import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
+import VerticalAlignTopIcon from '@mui/icons-material/VerticalAlignTop';
+import Divider from '@mui/material/Divider';
 
-function valuetext(value: number) {
-  return `${value}°C`;
-}
 
 const marks = [
   {
@@ -287,7 +288,7 @@ const LaboratorySensor = ({ db }) => {
     try {
       const response = await axios.get("http://api.frank4.com.ar/temperatura");
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
-      //console.log(temperaturaData)
+      console.log(temperaturaData)
       setChart(temperaturaData); // Actualiza el estado con los datos nuevos
     } catch (error) {
       console.error("Error al obtener datos de temperatura:", error);
@@ -326,8 +327,8 @@ const LaboratorySensor = ({ db }) => {
   return (
     <ShopLayout title={"Laboratorio"} pageDescription={""}>
       <div style={{
-        display:"flex",
-        width:"100%",
+        display: "flex",
+        width: "100%",
         padding: '50px 0px 0px 30px',
         justifyContent: "space-between",
         alignItems: "center"
@@ -359,9 +360,15 @@ const LaboratorySensor = ({ db }) => {
                 height: 100,
               }}
               title={
-                <Typography variant="h1" sx={{ color: "white", fontSize: 24 }}>
+                <>
+                <Typography variant="h1" sx={{ color: "white", fontSize: 22 }}>
                   {sensor.nombre}
                 </Typography>
+                <Typography variant="subtitle1" sx={{ color: "white", fontSize: 20 }}>
+                  {sensor.sensorId}
+                </Typography>
+                </>
+                
               }
               avatar={
                 sensor.alert ? (
@@ -400,10 +407,19 @@ const LaboratorySensor = ({ db }) => {
                     {sensor.temp != "3276.70" ? sensor.temp + "°" : "ERROR"}
                   </Typography>
                 </Box>
-                <Stack direction="column" alignItems="center" gap={0}>
-                  <Typography variant="subtitle1">H: {sensor.high}</Typography>
-                  <Typography variant="subtitle1">L: {sensor.low}</Typography>
-                  <Stack direction="row" alignItems="center" spacing={0.5}><AccessAlarmIcon /><Typography variant="subtitle1"> {`${Math.floor(sensor.time / 60)}:${sensor.time % 60 < 10 ? '0' : ''}${sensor.time % 60}`}</Typography></Stack>
+                <Stack direction="column" alignItems="flex-start" gap={0}>
+                  <Stack direction="row" alignItems="center" spacing={0.5} sx={{ width: "100%" }}>
+                    <VerticalAlignTopIcon />
+                    <Typography variant="subtitle1" align="center" width={"100%"} lineHeight={1}>{sensor.high}</Typography>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={0.5} width={"100%"}>
+                    <VerticalAlignBottomIcon />
+                    <Typography variant="subtitle1" align="center" width={"100%"} lineHeight={1}>{sensor.low}</Typography>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={0.5}>
+                    <AccessAlarmIcon />
+                    <Typography variant="subtitle1" align="center" lineHeight={1}> {`${Math.floor(sensor.time / 60)}:${sensor.time % 60 < 10 ? '0' : ''}${sensor.time % 60}`}</Typography>
+                  </Stack>
 
                 </Stack>
               </Stack>
@@ -423,11 +439,12 @@ const LaboratorySensor = ({ db }) => {
                       xAxis={[
                         {
                           data: item.timestamp.map(
-                            (timestamp) => new Date(timestamp)
+                            (timestamp) => format(new Date(timestamp), "HH:mm")
                           ),
-                          scaleType: "time",
-                          max: new Date(item.timestamp[0]),
-                          min: new Date(item.timestamp[59]),
+                          scaleType: "band",
+                          max: new Date(item.timestamp[59]),
+                          min: new Date(item.timestamp[0]),
+
                         },
                       ]}
                       yAxis={[
@@ -436,6 +453,7 @@ const LaboratorySensor = ({ db }) => {
                           min: min - (max - min) * 0.1,
                           tickMinStep: (max - min) / 3,
                           tickMaxStep: (max - min) / 3,
+
                         },
                       ]}
                       series={[
@@ -443,7 +461,7 @@ const LaboratorySensor = ({ db }) => {
                           data: item.temp,
                           type: "line",
                           label: "Temperatura",
-                          showMark: false,
+                          showMark: false
                         },
                       ]}
                       width={350}
@@ -461,8 +479,9 @@ const LaboratorySensor = ({ db }) => {
                         label="Min"
                         lineStyle={{ stroke: "blue" }}
                       />
-                      <ChartsXAxis />
-                      <ChartsYAxis position="right" />
+                      <ChartsXAxis
+                      />
+                      <ChartsYAxis />
                       <MarkPlot />
                       <LineHighlightPlot />
                       <ChartsAxisHighlight x="line" />
@@ -479,39 +498,61 @@ const LaboratorySensor = ({ db }) => {
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth={"xl"}>
         <DialogTitle>Historial de temperatura</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText paddingTop={1}>
             <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DateTimePicker
-                label="Start"
-                //minDate={new Date(historyData?.timestamp[0])}
-                maxDate={dateEnd}
-                value={dateStart}
-                onChange={(newValue) => setDateStart(newValue)}
-                disableFuture
-                ampm={false}
-                format="dd/MM/yyyy HH:mm"
-              />
-              <DateTimePicker
-                label="End"
-                minDate={dateStart}
-                value={dateEnd}
-                onChange={(newValue) => setDateEnd(newValue)}
-                disableFuture
-                ampm={false}
-                format="dd/MM/yyyy HH:mm"
-              />
-              <Button onClick={handleClickSearch}>Buscar</Button>
-              <DateTimePicker
-                label="End"
-                //minDate={dateStart}
-                value={dateDownload}
-                onChange={(newValue) => setDateDownload(newValue)}
-                disableFuture
-                ampm={false}
-                //format="dd/MM/yyyy HH:mm"
-                views={['month', 'year']}
-              />
-              <Button onClick={handleClickDownload}>Descargar PDF</Button>
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                spacing={2}
+              >
+                <Stack
+                  direction="row"
+                  justifyContent="flex-start"
+                  alignItems="center"
+                  spacing={2}
+                >
+                  <DateTimePicker
+                    label="Inicio"
+                    //minDate={new Date(historyData?.timestamp[0])}
+                    maxDate={dateEnd}
+                    value={dateStart}
+                    onChange={(newValue) => setDateStart(newValue)}
+                    disableFuture
+                    ampm={false}
+                    format="dd/MM/yyyy HH:mm"
+                  />
+                  <DateTimePicker
+                    label="Final"
+                    minDate={dateStart}
+                    value={dateEnd}
+                    onChange={(newValue) => setDateEnd(newValue)}
+                    disableFuture
+                    ampm={false}
+                    format="dd/MM/yyyy HH:mm"
+                  />
+                  <Button onClick={handleClickSearch}>Buscar</Button>
+                </Stack>
+                <Stack
+                  direction="row"
+                  justifyContent="flex-end"
+                  alignItems="center"
+                  spacing={2}
+                >
+                  <DateTimePicker
+                    label="Mes"
+                    //minDate={dateStart}
+                    value={dateDownload}
+                    onChange={(newValue) => setDateDownload(newValue)}
+                    disableFuture
+                    ampm={false}
+                    //format="dd/MM/yyyy HH:mm"
+                    views={['month', 'year']}
+                  />
+                  <Button onClick={handleClickDownload}>Descargar PDF</Button>
+                </Stack>
+              </Stack>
+
             </LocalizationProvider>
           </DialogContentText>
 
@@ -520,9 +561,9 @@ const LaboratorySensor = ({ db }) => {
               xAxis={[
                 {
                   data: historyData.timestamp.map(
-                    (timestamp) => new Date(timestamp)
+                    (timestamp) => format(new Date(timestamp), "dd/MM/yyyy HH:mm")
                   ),
-                  scaleType: "time",
+                  scaleType: "band",
                 },
               ]}
               series={[

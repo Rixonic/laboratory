@@ -469,7 +469,7 @@ export const templateTemp = `
       <tr style="height: 10px;">
         <th rowspan="4" style="font-weight: bold; font-size: x-large;">CONTROL DE TEMPERATURA DE HELADERAS</th>
         <th >Elaboro:</th>
-        <th ></th>
+        <th >Gestion de Calidad</th>
       </tr>
       <tr style="height: 10px;">
         <th >Reviso:</th>
@@ -501,6 +501,13 @@ export const templateTemp = `
         <th colspan="4" style="padding: 20px;" ><canvas id="temperatureChart"></canvas></th>
       </tr>
     </tbody>
+        <tfoot>
+      <tr style="height: 40px;">
+        <td style="padding-left: 5px;">Fecha:</td>
+        <td style="padding-left: 5px;">Observaciones:</td>
+        <td style="padding-left: 5px;" colspan="2" >Responsable <br/> control final:</td>
+      </tr>
+    </tfoot>
   </table>
 
 
