@@ -13,18 +13,14 @@ function imageToBase64(imagePath) {
 export default async function handler (req: NextApiRequest, res: NextApiResponse) {
     
     // Reemplazar variables en la plantilla con valores del cuerpo de la solicitud
-    //const replacedHtml = templateConstance.replace(/{{\s*([^}]+)\s*}}/g, (match, variable) => {
-    //    return req.body[variable.trim()] || '';
-    //});
+    const replacedHtml = templateTemp.replace(/{{\s*([^}]+)\s*}}/g, (match, variable) => {
+        return req.body[variable.trim()] || '';
+    });
 
     try {
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
-        console.log(req.body)
-        const { temp, timestamp } = req.body;
-
-        console.log(temp)
-        console.log(timestamp)
+        const { temp, timestamp } = req.body.data;
 
         const formattedTimestamps = timestamp.map(timestamp =>
             format(new Date(timestamp), 'dd/MM/yyyy HH:mm:ss')
@@ -35,10 +31,14 @@ export default async function handler (req: NextApiRequest, res: NextApiResponse
             .replace('{{temp}}', JSON.stringify(temp))
             .replace('{{time}}', JSON.stringify(formattedTimestamps));
 
+        const finalHtml = replacedHtml.replace(/{{\s*([^}]+)\s*}}/g, (match, variable) => {
+            return req.body[variable.trim()] || '';
+        });
+
         // Convertir las imágenes a base64
         const logoBase64 = imageToBase64(`C:\\Users\\franc\\Desktop\\sjd-sql\\utils\\templates\\LogoSJD-Granada.png`);
         //const firmaBase64 = imageToBase64(`C:\\signature\\firmaJP.png`);
-        let htmlWithBase64Images = replacedHtml.replace('./LogoSJD-Granada.png', `data:image/png;base64,${logoBase64}`)
+        let htmlWithBase64Images = finalHtml.replace('./LogoSJD-Granada.png', `data:image/png;base64,${logoBase64}`)
         // Reemplazar las rutas de las imágenes con las bases64 en la plantilla HTML
 
 

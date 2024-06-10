@@ -485,10 +485,10 @@ export const templateTemp = `
       <tr style="height: 40px;">
         <th colspan="4" style="width: 100px;">
           <div style="display: flex;justify-content: space-between; padding-left: 40px;padding-right: 80px;align-items: center;">
-            <h1>MES: <span>MARZO</span></h1>
-            <h1>AÑO: <span>2024</span></h1>
-            <h1>HELADERA: <span>Stock Reactivos Autoanalizador</span></h1>
-            <h1>CODIGO: <span>A_5_11</span></h1>
+            <h1>MES: <span>{{month}}</span></h1>
+            <h1>AÑO: <span>{{year}}</span></h1>
+            <h1>HELADERA: <span>{{nombre}}</span></h1>
+            <h1>CODIGO: <span>{{labId}}</span></h1>
             <h1>TOLERANCIA: +/- 1 °C</h1>
           </div>
         

@@ -67,7 +67,7 @@ export const ShopLayout:FC<Props> = ({ children, title, pageDescription, imageFu
         <main style={{
             //margin: '80px auto',
             //maxWidth: '1440px',
-            padding: '50px 0px 0px 30px'
+            padding: '50px 0px 0px 0px'
         }}>
             
             <Box sx={{ display: 'flex' }}>

@@ -35,11 +35,16 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
-import { format } from "date-fns";
+import { format, getMonth, getYear } from "date-fns";
 import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
 import VerticalAlignTopIcon from '@mui/icons-material/VerticalAlignTop';
-import Divider from '@mui/material/Divider';
+import Grid from "@mui/system/Unstable_Grid/Grid";
 
+const months = [
+  'ENERO', 'FEBRERO', 'MARZO', 'ABRIL',
+  'MAYO', 'JUNIO', 'JULIO', 'AGOSTO',
+  'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+];
 
 const marks = [
   {
@@ -103,7 +108,7 @@ const LaboratorySensor = ({ db }) => {
   const [dateStart, setDateStart] = React.useState<Date | null>(null);
   const [dateEnd, setDateEnd] = React.useState<Date | null>(null);
   const [dateDownload, setDateDownload] = React.useState<Date | null>(null);
-  const [selectedSensorId, setSelectedSensorId] = React.useState<String | null>(null);
+  const [selectedSensorId, setSelectedSensorId] = React.useState< {alert:boolean,high:number,labId:string,low:number,nombre:string,sensorId:string,temp:string,time:number} | null>(null);
 
   const handleClickOpen = async (sensorId) => {
     setOpen(true);
@@ -113,17 +118,17 @@ const LaboratorySensor = ({ db }) => {
   const handleClickSearch = async () => {
     try {
       const response = await axios.get(
-        `http://api.frank4.com.ar/temperatura/${selectedSensorId}`,
+        `https://api.frank4.com.ar/temperatura/${selectedSensorId.sensorId}`,
         {
           params: {
-            sensorId: selectedSensorId,
+            sensorId: selectedSensorId.sensorId,
             startDate: dateStart.toISOString(),
             endDate: dateEnd.toISOString(),
           },
         }
       );
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
-      console.log(temperaturaData);
+      //console.log(temperaturaData);
       setHistoryData(temperaturaData); // Actualiza el estado con los datos nuevos
 
     } catch (error) {
@@ -132,13 +137,15 @@ const LaboratorySensor = ({ db }) => {
   };
 
   const handleClickDownload = async () => {
-    console.log(dateDownload)
+    console.log(dateDownload.getMonth)
+    console.log(dateDownload.getFullYear)
+    console.log(selectedSensorId)
     try {
       const temp = await axios.get(
-        `http://api.frank4.com.ar/temperaturaFiltrada/${selectedSensorId}`,
+        `https://api.frank4.com.ar/temperaturaFiltrada/${selectedSensorId.sensorId}`,
         {
           params: {
-            sensorId: selectedSensorId,
+            sensorId: selectedSensorId.sensorId,
             date: dateDownload.toISOString(),
           },
         }
@@ -146,12 +153,19 @@ const LaboratorySensor = ({ db }) => {
 
       console.log(temp.data)
 
+      const requestBody = {
+        data:temp.data,
+        month:months[getMonth(dateDownload)],
+        year:getYear(dateDownload),
+        labId: selectedSensorId.labId,
+        nombre:selectedSensorId.nombre
+      }
       const response = await fetch('/api/generatePDFtemp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(temp.data),
+        body: JSON.stringify(requestBody),
       });
 
       if (response.ok) {
@@ -159,7 +173,7 @@ const LaboratorySensor = ({ db }) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.setAttribute('download', `Requerimiento  .pdf`);
+        link.setAttribute('download', `${selectedSensorId.labId}_${months[getMonth(dateDownload)]}_${getYear(dateDownload)}.pdf`);
         document.body.appendChild(link);
         link.click();
       } else {
@@ -189,22 +203,7 @@ const LaboratorySensor = ({ db }) => {
   const handleTimeChange = (event: Event, newValue: number | number[]) => {
     setNewTime(newValue as number);
   };
-  /*
-    const handleSendHigh = async () => {
-      const requestBody = {
-        sensorId: selectedSensor,
-        high: newHigh
-      };
-  
-      await axios.post('http://10.0.0.124:1880/setLimitHigh', requestBody)
-        .then(response => {
-          alert(response.data);
-        })
-        .catch(error => {
-          console.error('Error al enviar la solicitud:', error);
-        });
-  
-    };*/
+ 
   const handleSendHigh = async () => {
     const requestBody = {
       sensorId: selectedSensor,
@@ -255,10 +254,10 @@ const LaboratorySensor = ({ db }) => {
   };
 
   useEffect(() => {
-    let webSocket = new WebSocket("ws://frank4.com.ar:1880/laboratorio");
+    let webSocket = new WebSocket("wss://node-red.frank4.com.ar/laboratorio");
 
     const connectWebSocket = () => {
-      webSocket = new WebSocket("ws://frank4.com.ar:1880/laboratorio");
+      webSocket = new WebSocket("wss://node-red.frank4.com.ar/laboratorio");
 
       webSocket.onopen = () => {
         //console.log("WebSocket connection opened");
@@ -275,9 +274,7 @@ const LaboratorySensor = ({ db }) => {
         setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
       };
     };
-
     connectWebSocket();
-
     // Cleanup WebSocket connection on component unmount
     return () => {
       webSocket.close();
@@ -286,9 +283,9 @@ const LaboratorySensor = ({ db }) => {
 
   const fetchTemperaturaData = async () => {
     try {
-      const response = await axios.get("http://api.frank4.com.ar/temperatura");
+      const response = await axios.get("https://api.frank4.com.ar/temperatura");
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
-      console.log(temperaturaData)
+      //console.log(temperaturaData)
       setChart(temperaturaData); // Actualiza el estado con los datos nuevos
     } catch (error) {
       console.error("Error al obtener datos de temperatura:", error);
@@ -326,29 +323,28 @@ const LaboratorySensor = ({ db }) => {
 
   return (
     <ShopLayout title={"Laboratorio"} pageDescription={""}>
-      <div style={{
-        display: "flex",
-        width: "100%",
-        padding: '50px 0px 0px 30px',
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}>
-        <Typography variant="h1" align="center" >Monitoreo de temperatura</Typography>
-        <IconButton onClick={() => setDialogSetting(true)}>
-          <SettingsIcon sx={{ fontSize: 48 }} />
-        </IconButton>
-      </div>
-
+      <Grid container spacing={3} >
+        <Grid xs={6} xsOffset={3} display="flex" justifyContent="center" alignItems="center" >
+          <Typography variant="h1" align="center" >Monitoreo de temperatura</Typography>
+        </Grid>
+        <Grid xs={3} display="flex" justifyContent="end" alignItems="center" >
+          <IconButton onClick={() => setDialogSetting(true)} sx={{ display: { xs: 'none', sm: 'flex' } }} >
+            <SettingsIcon sx={{ fontSize: 48 }} />
+          </IconButton>
+        </Grid>
+      </Grid>
       <Stack
+        margin={"auto"}
         spacing={{ xs: 1, sm: 2 }}
         direction="row"
         useFlexGap
         flexWrap="wrap"
+        justifyContent={"center"}
       >
         {data?.map((sensor, index) => (
           <Card
             sx={{
-              width: 350,
+              width: 320,
               border: `1px solid ${sensor.alert ? "#ff5d68" : (parseFloat(sensor.temp) <= parseFloat(sensor.high) && parseFloat(sensor.temp) >= parseFloat(sensor.low) ? "#50b1fe" : "#ffb818")}`,
             }}
             key={sensor.sensorId}
@@ -357,35 +353,33 @@ const LaboratorySensor = ({ db }) => {
             <CardHeader
               sx={{
                 backgroundColor: sensor.alert ? "#ff5d68" : (parseFloat(sensor.temp) <= parseFloat(sensor.high) && parseFloat(sensor.temp) >= parseFloat(sensor.low) ? "#50b1fe" : "#ffb818"),
-                height: 100,
+                height: 80,
+                padding: 2
               }}
               title={
                 <>
-                <Typography variant="h1" sx={{ color: "white", fontSize: 22 }}>
-                  {sensor.nombre}
-                </Typography>
-                <Typography variant="subtitle1" sx={{ color: "white", fontSize: 20 }}>
-                  {sensor.sensorId}
-                </Typography>
+                  <Typography variant="h1" sx={{ color: "white", fontSize: 20 }}>
+                    {sensor.nombre}
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ color: "white", fontSize: 18 }}>
+                    Cod: {sensor.sensorId}
+                  </Typography>
                 </>
-                
               }
               avatar={
                 sensor.alert ? (
-                  <IconButton>
-                    <NotificationsActiveIcon
-                      sx={{ color: "white", fontSize: 42 }}
-                    />
-                  </IconButton>
+                  <NotificationsActiveIcon
+                    sx={{ color: "white", fontSize: 38 }}
+                  />
                 ) : (parseFloat(sensor.temp) <= parseFloat(sensor.high) && parseFloat(sensor.temp) >= parseFloat(sensor.low) ?
-                  <ThermostatIcon sx={{ color: "white", fontSize: 48 }} />
+                  <ThermostatIcon sx={{ color: "white", fontSize: 38 }} />
                   :
-                  <PriorityHighIcon sx={{ color: "white", fontSize: 48 }} />
+                  <PriorityHighIcon sx={{ color: "white", fontSize: 38 }} />
                 )
               }
               action={
-                <IconButton onClick={() => handleClickOpen(sensor.sensorId)}>
-                  <HistoryIcon sx={{ color: "white", fontSize: 48 }} />
+                <IconButton onClick={() => handleClickOpen(sensor)}>
+                  <HistoryIcon sx={{ color: "white", fontSize: 38 }} />
                 </IconButton>
               }
             />
@@ -464,7 +458,7 @@ const LaboratorySensor = ({ db }) => {
                           showMark: false
                         },
                       ]}
-                      width={350}
+                      width={320}
                       height={200}
                       margin={{ left: 30, right: 30, top: 30, bottom: 30 }}
                     >
@@ -505,12 +499,14 @@ const LaboratorySensor = ({ db }) => {
                 justifyContent="space-between"
                 alignItems="center"
                 spacing={2}
+                
               >
                 <Stack
                   direction="row"
                   justifyContent="flex-start"
                   alignItems="center"
                   spacing={2}
+                  sx={{ display: { xs: 'none', sm: 'flex' } }}
                 >
                   <DateTimePicker
                     label="Inicio"
@@ -575,6 +571,7 @@ const LaboratorySensor = ({ db }) => {
                 },
               ]}
               height={400}
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
               <LinePlot />
               <ChartsXAxis />
@@ -758,7 +755,7 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
   req,
 }) => {
-  const response = await axios.get("http://api.frank4.com.ar/temperatura");
+  const response = await axios.get("https://api.frank4.com.ar/temperatura");
   const db = response.data; // Ajusta según la estructura de datos recibida
 
   return {
