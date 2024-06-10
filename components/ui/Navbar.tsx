@@ -1,11 +1,10 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 
-import {  Badge, Box, Button, IconButton, Input, InputAdornment, Link, Toolbar, Typography } from '@mui/material';
-import { ClearOutlined, SearchOutlined, ShoppingCartOutlined } from '@mui/icons-material';
+import {  Box, Link, Toolbar, Typography } from '@mui/material';
 
 import { UiContext } from '../../context';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { styled, useTheme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 
 import { drawerWidth } from '../constants';
 interface AppBarProps extends MuiAppBarProps {
@@ -38,12 +37,12 @@ export const Navbar = () => {
     return (
         <AppBar open={isMenuOpen}>
             <Toolbar>
-            <Button onClick={ toggleSideMenu }>
-                    Menú
-                </Button>
 
-
-                <Box flex={ 1 } />
+                
+                <Box flex={ 1 } display={"flex"} gap={2} >
+                  <Typography variant='h6' display='flex' fontWeight={"bold"} color={"black"}>A.C.S.A.</Typography>
+                  <Typography variant='h6' sx={{ display: { xs: 'none', sm: 'flex' } }} color={"black"}>Areas Controladas S.A.</Typography>
+                </Box>
 
                 <Box flex={ 1 } />
 
@@ -58,7 +57,7 @@ export const Navbar = () => {
 
 
                 <Link display='flex' alignItems="baseline" href='/'>
-                        <Typography variant='h6'>Ingenieria |</Typography>
+                        <Typography variant='h6'>Laboratorio |</Typography>
                         <Typography sx={{ ml: 0.5 }}>HSJD</Typography>
                     </Link>  
 

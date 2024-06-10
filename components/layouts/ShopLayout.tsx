@@ -1,12 +1,12 @@
 import { FC } from 'react';
 import Head from 'next/head';
-import { useContext, useState } from 'react';
-import { Navbar, SideMenu } from '../ui';
+import { useContext } from 'react';
+import { Navbar } from '../ui';
 
 import Box from '@mui/material/Box';
-import { styled, useTheme } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import * as React from 'react';
-import { UiContext, AuthContext } from '../../context';
+import { UiContext } from '../../context';
 
 import { drawerWidth } from '../constants';
 
@@ -63,7 +63,6 @@ export const ShopLayout:FC<Props> = ({ children, title, pageDescription, imageFu
             {<Navbar />}
 
         </nav>
-        <SideMenu />
         <main style={{
             //margin: '80px auto',
             //maxWidth: '1440px',
