@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Box from "@mui/material/Box";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import Card from "@mui/material/Card"
 import CardHeader from "@mui/material/CardHeader"
 import Typography from "@mui/material/Typography"
@@ -7,6 +9,7 @@ import CardContent from "@mui/material/CardContent"
 import Stack from "@mui/material/Stack"
 import IconButton from "@mui/material/IconButton"
 import DialogContentText from "@mui/material/DialogContentText"
+import { CircularProgress, SelectChangeEvent } from "@mui/material"
 import { ShopLayout } from "../components/layouts";
 import ThermostatIcon from "@mui/icons-material/Thermostat";
 import axios from "axios"
@@ -27,12 +30,22 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
+import SettingsIcon from "@mui/icons-material/Settings";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import AccessAlarmIcon from '@mui/icons-material/AccessAlarm';
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import { format, getMonth, getYear } from "date-fns";
 import VerticalAlignBottomIcon from '@mui/icons-material/VerticalAlignBottom';
 import VerticalAlignTopIcon from '@mui/icons-material/VerticalAlignTop';
+import Grid from "@mui/system/Unstable_Grid/Grid";
+import { getSession } from "next-auth/react";
+//import { getUserData } from "../database/dbUsers";
+import { AlertContext } from "../context/alert/AlertContext";
+import DownloadIcon from '@mui/icons-material/Download';
+import Input from '@mui/material/Input';
+import InputLabel from '@mui/material/InputLabel';
+import InputAdornment from '@mui/material/InputAdornment';
+import FormControl from '@mui/material/FormControl';
 
 const months = [
   'ENERO', 'FEBRERO', 'MARZO', 'ABRIL',
@@ -40,10 +53,35 @@ const months = [
   'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
 ];
 
-const LaboratorySensor = ({ db }) => {
+const showNotification = (name, type) => {
+  if ("Notification" in window) {
+    // Verifica si las notificaciones son soportadas por el navegador
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        // Crea y muestra la notificación
+        new Notification("Alerta de temperatura", {
+          body: type
+            ? `${name} - Fuera de temperatura`
+            : `${name} - Dentro de los valores`,
+          icon: "/favicon.ico", // Opcional: ruta al icono de la notificación
+          requireInteraction: true, // Para que la notificación no se cierre automáticamente
+          silent: false,
+        });
+      }
+    });
+  }
+};
+
+const LaboratorySensor = ({ db}) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState(null);
   const [chart, setChart] = useState(db);
+  const [selectedSensor, setSelectedSensor] = useState("");
+  const [newHigh, setNewHigh] = React.useState(null);
+  const [newLow, setNewLow] = React.useState(null);
+  const [newTime, setNewTime] = React.useState(null);
   const [open, setOpen] = React.useState(false);
+  const [dialogSetting, setDialogSetting] = React.useState(false);
   const [historyData, setHistoryData] = React.useState({
     sensorId: "",
     temp: [],
@@ -52,8 +90,8 @@ const LaboratorySensor = ({ db }) => {
   const [dateStart, setDateStart] = React.useState<Date | null>(null);
   const [dateEnd, setDateEnd] = React.useState<Date | null>(null);
   const [dateDownload, setDateDownload] = React.useState<Date | null>(null);
-  const [selectedSensorId, setSelectedSensorId] = React.useState< {alert:boolean,high:number,labId:string,low:number,nombre:string,sensorId:string,temp:string,time:number} | null>(null);
-
+  const [selectedSensorId, setSelectedSensorId] = React.useState<{ alert: boolean, high: number, labId: string, low: number, nombre: string, sensorId: string, temp: string, time: number } | null>(null);
+  const { showAlert } = useContext(AlertContext);
   const handleClickOpen = async (sensorId) => {
     setOpen(true);
     setSelectedSensorId(sensorId)
@@ -62,7 +100,7 @@ const LaboratorySensor = ({ db }) => {
   const handleClickSearch = async () => {
     try {
       const response = await axios.get(
-        `https://api.frank4.com.ar/temperatura/${selectedSensorId.sensorId}`,
+        `http://10.0.0.124:4000/temperatura/${selectedSensorId.sensorId}`,
         {
           params: {
             sensorId: selectedSensorId.sensorId,
@@ -76,34 +114,25 @@ const LaboratorySensor = ({ db }) => {
       setHistoryData(temperaturaData); // Actualiza el estado con los datos nuevos
 
     } catch (error) {
+      
+      showAlert(`Error al obtener los datos`, 'error');
       console.error("Error al obtener datos de temperatura:", error);
     }
   };
 
   const handleClickDownload = async () => {
-    console.log(dateDownload.getMonth)
-    console.log(dateDownload.getFullYear)
-    console.log(selectedSensorId)
+    console.time("Inicio request")
+    setIsLoading(true)
     try {
-      const temp = await axios.get(
-        `https://api.frank4.com.ar/temperaturaFiltrada/${selectedSensorId.sensorId}`,
-        {
-          params: {
-            sensorId: selectedSensorId.sensorId,
-            date: dateDownload.toISOString(),
-          },
-        }
-      );
-
-      console.log(temp.data)
-
       const requestBody = {
-        data:temp.data,
-        month:months[getMonth(dateDownload)],
-        year:getYear(dateDownload),
+        date: dateDownload.toISOString(),
+        month: months[getMonth(dateDownload)],
+        year: getYear(dateDownload),
         labId: selectedSensorId.labId,
-        nombre:selectedSensorId.nombre
+        nombre: selectedSensorId.nombre,
+        sensorId: selectedSensorId.sensorId,
       }
+      console.time("REQUEST")
       const response = await fetch('/api/generatePDFtemp', {
         method: 'POST',
         headers: {
@@ -111,6 +140,7 @@ const LaboratorySensor = ({ db }) => {
         },
         body: JSON.stringify(requestBody),
       });
+      console.timeEnd("REQUEST")
 
       if (response.ok) {
         const blob = await response.blob();
@@ -124,16 +154,69 @@ const LaboratorySensor = ({ db }) => {
         console.error('Error al generar el PDF:', response.statusText);
       }
     } catch (error) {
+      showAlert(`Error al generar el PDF`, 'error');
       console.error('Error al generar el PDF:', error.message);
+    } finally {
+      setIsLoading(false)
     }
-  };
+    console.timeEnd("Inicio request")
+  }; 
 
   const handleClose = () => {
     setHistoryData({ sensorId: "", temp: [], timestamp: [] });
     setOpen(false);
+  };
+
+  const handleSensorChange = (event: SelectChangeEvent<string>) => {
+    setSelectedSensor(event.target.value);
+  };
+
+  const handleSendHigh = async () => {
+    const requestBody = {
+      sensorId: selectedSensor,
+      high: parseInt(newHigh)
     };
-    
-        
+    console.log(requestBody)
+    // Realiza la solicitud POST con Axios
+    await axios.post('http://10.0.0.124:1880/setLimitHigh', requestBody)
+      .then(response => {
+        showAlert(`${response.data}`, 'success');
+      })
+      .catch(error => {
+        console.error('Error al enviar la solicitud:', error);
+      });
+  };
+
+  const handleSendLow = async () => {
+    const requestBody = {
+      sensorId: selectedSensor,
+      low: parseInt(newLow)
+    };
+    await axios.post('http://10.0.0.124:1880/setLimitLow', requestBody)
+      .then(response => {
+        showAlert(`${response.data}`, 'success');
+      })
+      .catch(error => {
+        console.error('Error al enviar la solicitud:', error);
+      });
+  };
+
+  const handleSendTime = async () => {
+    const requestBody = {
+      sensorId: selectedSensor,
+      time: parseInt(newTime)
+    };
+    try {
+      const response = await axios.post('http://10.0.0.124:1880/setTime', requestBody)
+      showAlert(`${response.data}`, 'success');
+      console.log(response)
+    } catch (error) {
+      showAlert(`${error}`, 'error');
+      console.error('Error al enviar la solicitud:', error);
+    }
+    // Realiza la solicitud POST con Axios
+  };
+
   useEffect(() => {
     let webSocket = new WebSocket("wss://node-red.frank4.com.ar/laboratorio");
 
@@ -141,22 +224,18 @@ const LaboratorySensor = ({ db }) => {
       webSocket = new WebSocket("wss://node-red.frank4.com.ar/laboratorio");
 
       webSocket.onopen = () => {
-        //console.log("WebSocket connection opened");
       };
 
       webSocket.onmessage = (event) => {
         const receivedData = JSON.parse(event.data);
         setData(receivedData);
-        //console.log(receivedData)
       };
 
       webSocket.onclose = () => {
-        //console.log("WebSocket connection closed. Reconnecting...");
         setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
       };
     };
     connectWebSocket();
-    // Cleanup WebSocket connection on component unmount
     return () => {
       webSocket.close();
     };
@@ -164,9 +243,8 @@ const LaboratorySensor = ({ db }) => {
 
   const fetchTemperaturaData = async () => {
     try {
-      const response = await axios.get("https://api.frank4.com.ar/temperatura");
+      const response = await axios.get("http://10.0.0.124:4000/temperatura");
       const temperaturaData = response.data; // Ajusta según la estructura de datos recibida
-      //console.log(temperaturaData)
       setChart(temperaturaData); // Actualiza el estado con los datos nuevos
     } catch (error) {
       console.error("Error al obtener datos de temperatura:", error);
@@ -178,13 +256,37 @@ const LaboratorySensor = ({ db }) => {
     fetchTemperaturaData();
     const intervalId = setInterval(() => {
       fetchTemperaturaData();
-    }, 60000);
+    }, 6000);
     return () => clearInterval(intervalId);
   }, []); // También ejecutará esta solicitud solo una vez al montar el componente
 
+  useEffect(() => {
+    // Comprobación de cambios en las alarmas para mostrar notificación
+    const savedAlarms = JSON.parse(localStorage.getItem("alarms"));
+
+    if (!savedAlarms) {
+      localStorage.setItem("alarms", JSON.stringify(data));
+      //console.log("datos guardados");
+    }
+
+    if (savedAlarms && data) {
+      savedAlarms.forEach((savedAlarm, index) => {
+        if (savedAlarm.alert !== data[index].alert) {
+          // El estado de la alarma ha cambiado, enviar notificación
+          showNotification(savedAlarm.nombre, data[index].alert);
+          localStorage.setItem("alarms", JSON.stringify(data));
+        }
+      });
+    }
+  }, [data]);
+
   return (
     <ShopLayout title={"Laboratorio"} pageDescription={""}>
-          <Typography variant="h1" align="center" paddingBottom={2} >Monitoreo de temperatura</Typography>
+      <Grid container spacing={3} >
+        <Grid xs={6} xsOffset={3} display="flex" justifyContent="center" alignItems="center" >
+          <Typography variant="h1" align="center" >Monitoreo de temperatura</Typography>
+        </Grid>
+      </Grid>
       <Stack
         margin={"auto"}
         spacing={{ xs: 1, sm: 2 }}
@@ -348,10 +450,10 @@ const LaboratorySensor = ({ db }) => {
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <Stack
                 direction="row"
-                justifyContent="space-between"
+                justifyContent="space-evenly"
                 alignItems="center"
                 spacing={2}
-                
+
               >
                 <Stack
                   direction="row"
@@ -397,10 +499,15 @@ const LaboratorySensor = ({ db }) => {
                     //format="dd/MM/yyyy HH:mm"
                     views={['month', 'year']}
                   />
-                  <Button onClick={handleClickDownload}>Descargar PDF</Button>
+                  <Button 
+                  disabled={isLoading}
+                    onClick={handleClickDownload}
+                    endIcon={isLoading ? <CircularProgress  size={18}/> : <DownloadIcon/>}
+                  >Descargar PDF</Button>
+
                 </Stack>
               </Stack>
-              <Typography paddingTop={2} variant="subtitle1" sx={{ display: { xs: 'flex', sm: 'none' } }}> Para acceder al historial debe ingresar desde una PC o Notebook. <br/> Puede descargar el registro mensual. </Typography>
+
             </LocalizationProvider>
           </DialogContentText>
 
@@ -439,7 +546,141 @@ const LaboratorySensor = ({ db }) => {
           <Button onClick={handleClose}>Cerrar</Button>
         </DialogActions>
       </Dialog>
-      
+      <Dialog
+        open={dialogSetting}
+        onClose={() => setDialogSetting(false)}
+
+      >
+        <DialogTitle>Configuracion</DialogTitle>
+        <DialogContent>
+          <FormControl sx={{ mt: 1 }} fullWidth>
+            <InputLabel id="demo-simple-select-label">Seleccione un sensor</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={selectedSensor}
+              label="Seleccione un sensor"
+              onChange={handleSensorChange}
+            >
+              {data?.map((sensor, index) => (
+                <MenuItem value={sensor.sensorId} key={sensor.sensorId}>{sensor.nombre}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Stack spacing={3} sx={{ mt: 2 }}>
+            <Box>
+              <Typography variant="h1" align="center">
+                Limite Alto
+              </Typography>
+              <Stack spacing={0} direction="column" useFlexGap>
+                <Stack
+                  direction="row"
+                  justifyContent="center"
+                  alignItems="center"
+                  spacing={1}
+                >
+                  <FormControl variant="standard" >
+                    <Input
+                      endAdornment={<InputAdornment position="end">°C</InputAdornment>}
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      type="number"
+                      value={newHigh}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setNewHigh(event.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleSendHigh}
+                    size="large"
+                  >
+                    Guardar
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography variant="h1" align="center">
+                Limite Bajo
+              </Typography>
+              <Stack spacing={0} direction="column" useFlexGap>
+                <Stack
+                  direction="row"
+                  justifyContent="center"
+                  alignItems="center"
+                  spacing={1}
+                >
+                  <FormControl variant="standard" >
+                    <Input
+                      endAdornment={<InputAdornment position="end">°C</InputAdornment>}
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      type="number"
+                      value={newLow}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setNewLow(event.target.value);
+                      }}
+                    />
+                  </FormControl>
+
+                  <Button
+                    variant="contained"
+                    onClick={handleSendLow}
+                    size="large"
+                  >
+                    Guardar
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
+
+            <Box>
+              <Typography variant="h1" align="center">
+                Tiempo
+              </Typography>
+              <Stack spacing={0} direction="column" useFlexGap>
+                <Stack
+                  direction="row"
+                  justifyContent="center"
+                  alignItems="center"
+                  spacing={1}
+                >
+                  <FormControl variant="standard" >
+                    <Input
+                      endAdornment={<InputAdornment position="end">min.</InputAdornment>}
+                      inputProps={{
+                        'aria-label': 'weight',
+                      }}
+                      type="number"
+                      value={newTime}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setNewTime(event.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleSendTime}
+                    size="large"
+                  >
+                    Guardar
+                  </Button>
+                </Stack>
+              </Stack>
+            </Box>
+
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogSetting(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </ShopLayout>
   );
 };
@@ -450,12 +691,16 @@ export const getServerSideProps: GetServerSideProps = async ({
   query,
   req,
 }) => {
-  const response = await axios.get("https://api.frank4.com.ar/temperatura");
+  const response = await axios.get("http://10.0.0.124:4000/temperatura");
   const db = response.data; // Ajusta según la estructura de datos recibida
+ // const session = await getSession({ req });
+  //const userData = await getUserData(session.user.email);
+ // delete userData._id;
 
   return {
     props: {
-      db,
+      db
+      //userData
     },
   };
 };

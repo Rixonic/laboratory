@@ -40,8 +40,8 @@ export const Navbar = () => {
 
                 
                 <Box flex={ 1 } display={"flex"} gap={2} >
-                  <Typography variant='h6' display='flex' fontWeight={"bold"} color={"black"}>A.C.S.A.</Typography>
-                  <Typography variant='h6' sx={{ display: { xs: 'none', sm: 'flex' } }} color={"black"}>Areas Controladas S.A.</Typography>
+                  <Typography variant='h6' display='flex' fontWeight={"bold"} color={"black"}></Typography>
+                  <Typography variant='h6' sx={{ display: { xs: 'none', sm: 'flex' } }} color={"black"}></Typography>
                 </Box>
 
                 <Box flex={ 1 } />

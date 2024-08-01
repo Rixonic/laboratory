@@ -3,9 +3,9 @@
   "name": "sjd",
   "private": true,
   "scripts": {
-    "dev": "PORT=5100 next dev",
+    "dev": "PORT=8008 next dev",
     "build": "next build",
-    "start": "PORT=5100 next start",
+    "start": "PORT=8008 next start",
     "lint": "next lint"
   },
   "dependencies": {
